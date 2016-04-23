@@ -64,7 +64,7 @@ syscall bs_map_check(int pid, unsigned int vir_add, int * store, int * page_offs
 
 	  if (bstab[bs_id].isallocated == TRUE) {
 		  //LOG(" bstab allocated %d this pid %d pid %d vpage %d vp_no %d", bs_id,pid,  bstab[bs_id].pid,vpage,  bstab[bs_id].vp_no );
-		  if(bstab[bs_id].pid == pid && vpage >= bstab[bs_id].vp_no)
+		  if(bstab[bs_id].pid == pid && vpage >= bstab[bs_id].vp_no  && vpage <= bstab[bs_id].vp_no + bstab[bs_id].npages)
 		  {
 			  *store = bs_id;
 			  //LOG(" vpage is %d ",vpage);

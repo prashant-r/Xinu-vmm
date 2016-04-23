@@ -90,7 +90,7 @@ void vcprocA(void)
 
 void vcprocB(void)
 {
-	char *tmp = (char *)0x01000001;
+	char *tmp = (char *)0x01110001;
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
 	*tmp = 'G';
 	addressTranslate(tmp);
