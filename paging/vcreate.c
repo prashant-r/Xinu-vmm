@@ -58,8 +58,8 @@ void basicTest()
     pa = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
     pb = vcreate(vcprocB, 1024, 200, 20, "procB",0,0);
     pc = vcreate(vcprocC, 1024, 200, 20, "procC",0,0);
+    resume(pa);
     //resume(pb);
-    resume(pb);
     //resume(pc);
     return;
 }
@@ -74,11 +74,12 @@ void vcprocA(void)
 	//addressTranslate(tmp);
 	//printMemory();
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	tmp = vgetmem(200*PAGE_SIZE);
+	tmp = vgetmem(4090);
+	kprintf(" Address provided is 0x%08x", tmp);
 	printMemory();
 	int a;
-
-	for(a =0; a <200*PAGE_SIZE; a++)
+	kprintf(" Made it here");
+	for(a =0; a <4090; a++)
 	{
 		tmp[a] = 'Y';
 	}

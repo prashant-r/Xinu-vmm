@@ -45,6 +45,7 @@ frame_t * retrieve_new_frame(frame_type type)
         frameptr->vp_no = 0;
         frameptr->dirty = 0;
         frameptr->backstore = -1;
+        frameptr->backstore_offset=0;
 		restore(mask);
 		return frameptr;
 	}
@@ -60,6 +61,7 @@ frame_t * retrieve_new_frame(frame_type type)
                     frameptr->vp_no = 0;
                     frameptr->dirty = 0;
                     frameptr->backstore = -1;
+                    frameptr->backstore_offset = 0;
                     break;
                 }
             }
@@ -129,6 +131,7 @@ syscall frame_map_check(int pid, int store, int page_offset_in_store, int * page
 
 		  if(frames[fr_id].pid == currpid && frames[fr_id].backstore == store && frames[fr_id].backstore_offset == page_offset_in_store)
 		  {
+			  kprintf(" Was a  match %d, %d, %d, %d, %d, %d", frames[fr_id].pid, currpid, frames[fr_id].backstore, store, frames[fr_id].backstore_offset, page_offset_in_store);
 			  *pageframe_id = fr_id;
 	      	  restore(mask);
 	      	  return OK;

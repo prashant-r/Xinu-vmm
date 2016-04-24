@@ -36,7 +36,7 @@ syscall pagefault_handler(void)
 	{
 		//LOG(" Page table is present ");
 		frame_id = (pgdir[pgd_off].pd_base) - FRAME0;
-		LOG(" Frame id in present is %d", frame_id);
+		LOG(" Page table frame id in present is %d", frame_id);
 		ptab = FRAMEID_TO_PHYSICALADDR(frame_id);
 	}
 	else
@@ -59,10 +59,9 @@ syscall pagefault_handler(void)
 		 int k;
 		 for(k=0; k<1024; k++)
        	 {     
-            ptab->pt_pres = 0;
-            ptab->pt_write = 0;
-            ptab->pt_base = 0;
-            ptab ++ ;
+            ptab[k].pt_pres = 0;
+            ptab[k].pt_write = 1;
+            ptab[k].pt_base = 0;
        	 }
 		 pgdir[pgd_off].pd_pres = 1;
 		 pgdir[pgd_off].pd_write = 1;
@@ -110,10 +109,12 @@ syscall pagefault_handler(void)
 		kill(currpid);
 		return SYSERR;
 	}
+	LOG(" Page frame obtained %d", pageframe_id);
 	ptab[pgt_off].pt_base = FRAME0 + pageframe_id;
 	ptab[pgt_off].pt_pres = 1;
 	ptab[pgt_off].pt_write = 1;
 	LOG(" Going to enable paging ");
+	flush_tlb();
 	enable_paging();
 	restore(mask);
 	return OK;

@@ -71,7 +71,7 @@ pt_t * retrieve_new_page_table(void)
     }
     new_pagetable = (pt_t *) FRAMEID_TO_PHYSICALADDR(frame->id);
     for (pagetable_entry = 0; pagetable_entry < PAGETABLE_ENTRIES_SIZE; ++pagetable_entry) {
-            bzero((char *)new_pagetable, sizeof(pt_t));
+            bzero((char *)&new_pagetable[pagetable_entry], sizeof(pt_t));
     }
     restore(mask);
     return new_pagetable;
