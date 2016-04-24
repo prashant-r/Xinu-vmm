@@ -137,9 +137,13 @@ frame_t * evict_frame_using_fifo(void)
 	while(frame != NULL){
 		if(frame->type == PAGE)
 			break;
+		frame = frame->next;
 	}
 	if(frame != NULL)
+	{
+		LOG("Free frame %d", frame->id);
 		free_frame(frame);
+	}
 	return frame;
 }
 
@@ -296,12 +300,11 @@ int frame_map_check(int pid, int store, int page_offset_in_store, int * pagefram
 
 		  if(frames[fr_id].pid == currpid && frames[fr_id].backstore == store && frames[fr_id].backstore_offset == page_offset_in_store)
 		  {
-			  kprintf(" Was a  match %d, %d, %d, %d, %d, %d", frames[fr_id].pid, currpid, frames[fr_id].backstore, store, frames[fr_id].backstore_offset, page_offset_in_store);
+			  //kprintf(" Was a  match %d, %d, %d, %d, %d, %d", frames[fr_id].pid, currpid, frames[fr_id].backstore, store, frames[fr_id].backstore_offset, page_offset_in_store);
 			  *pageframe_id = fr_id;
 	      	  restore(mask);
 	      	  return OK;
 		  }
-
 	    }
 	}
 	restore(mask);
