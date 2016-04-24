@@ -112,15 +112,15 @@ void enable_paging(){
         : /* no inputs */
         : "eax"
         );
-	LOG("Enabled paging");
+//	LOG("Enabled paging");
 }
 
 void disable_paging(void) {
-	LOG("DISABLED PAGING");
+
     unsigned int  cr0;
     __asm__ __volatile__ ("movl %%cr0, %0" : "=r"(cr0));
     __asm__ __volatile__ ("movl %0, %%cr0" : : "r"(cr0 & 0x7fffffff));
-
+//    LOG("DISABLED PAGING");
 }
 
 void switch_page_directory(unsigned int address)
@@ -138,6 +138,12 @@ void switch_page_directory(unsigned int address)
 	//LOG(" switch page directory to 0x%08x", address);
 }
 
+void invlpg(void* m)
+{
+    asm volatile ( "invlpg (%0)" : : "b"(m) : "memory" );
+    LOG("Invalidated page");
+}
+
 
 void flush_tlb()
 {
@@ -146,6 +152,6 @@ void flush_tlb()
                          :
                          :
                          : "memory", "eax");
-   LOG("Flushed TLB cache");
+  // LOG("Flushed TLB cache");
 }
 

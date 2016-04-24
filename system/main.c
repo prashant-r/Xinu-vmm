@@ -14,6 +14,8 @@ process	main(void)
 	/* DO NOT REMOVE OR COMMENT THIS CALL */
 	psinit();
 	
+	srpolicy(FIFO);
+
 	// Run tests
 	all_paging_tests();
 	/* Wait for shell to exit and recreate it */

@@ -1,17 +1,17 @@
 #include <xinu.h>
 
-int srlpolicy = FIFO;
+int policy = FIFO;
 
-syscall  srpolicy (int policy)
+syscall  srpolicy (int srpolicy)
 {
-	if(policy == FIFO)
+	if(srpolicy == FIFO)
 	{
-		srlpolicy = FIFO;
+		policy = FIFO;
 		return OK;
 	}
-	else if(policy == LRU)
+	else if(srpolicy == AGING)
 	{
-		srlpolicy = LRU;
+		policy = AGING;
 		return OK;
 	}
 	return SYSERR;

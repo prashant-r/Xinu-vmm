@@ -20,20 +20,19 @@ WORD *vgetmem (int nbytes)
 		/*    Heap starts at the end of Xinu image */
 		vhmdatavar->maxheap = (uint32)((prptr->vpagestart + prptr->vpagesize)*4096);
 		vhmdatavar->minheap = (uint32)(prptr->vpagestart*4096);
-		kprintf(" Max heap is 0x%08x \n", vhmdatavar->maxheap);
-		kprintf(" Min heap is 0x%08x \n", vhmdatavar->minheap);
+		LOG(" Max heap is 0x%08x \n", vhmdatavar->maxheap);
+		LOG(" Min heap is 0x%08x \n", vhmdatavar->minheap);
 		memptr->mlength = (uint32)vhmdatavar->maxheap - (uint32)vhmdatavar->minheap;
-		kprintf(" Size of mlength is %d ", memptr->mlength);
+		LOG(" Size of mlength is %d \n", memptr->mlength);
 		memptr->mnext = (struct memblk *)vhmdatavar->minheap;
 		memptr = memptr->mnext;
 		memptr->mnext = NULL;
 		memptr->mlength = (uint32)vhmdatavar->maxheap - (uint32)vhmdatavar->minheap;
-		kprintf(" Size of mlength is %d ", memptr->mlength);
+		LOG(" Size of mlength is %d \n", memptr->mlength);
 		prptr->vhmdata = vhmdatavar;
 
 	}
 	struct	memblk	*prev, *curr, *leftover, * memorylist;
-	mask = disable();
 	if (nbytes == 0) {
 		restore(mask);
 		return (char *)SYSERR;
@@ -65,11 +64,6 @@ WORD *vgetmem (int nbytes)
 			curr = curr->mnext;
 		}
 	}
-	kprintf(" THere 1 0x%08x \n", memorylist);
-	kprintf(" THere 1.5 0x%08x \n ", memorylist->mnext);
-	kprintf(" THere 1.55 0x%08x \n", memorylist->mnext->mnext);
-	kprintf(" THere 1.6 0x%08x \n", memorylist->mnext->mlength);
-
 	restore(mask);
 	return (char *)SYSERR;
 }
@@ -81,18 +75,13 @@ void printMemory()
 	struct	memblk	*memptr;	/* Ptr to memory block		*/
 	prptr = &proctab[currpid];
 	struct memblk * memorylist;
-	kprintf(" Here");
 	if(prptr->vhmdata != NULL){
 	memorylist = &prptr->vhmdata->mlist;
 	uint32 free_mem = 0;
-	kprintf(" Here 2");
 	for (memptr = memorylist->mnext; memptr != NULL;
 						memptr = memptr->mnext) {
-		kprintf(" Here 2.5 \n");
 		free_mem += memptr->mlength;
-		kprintf(" Here 2.6 \n");
 	}
-	kprintf(" Here 3 \n");
 	kprintf("%10d bytes of free memory.  Free list:\n", free_mem);
 	for (memptr=memorylist->mnext; memptr!=NULL;memptr = memptr->mnext) {
 	    kprintf("           [0x%08X to 0x%08X]\r\n",

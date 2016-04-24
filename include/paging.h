@@ -2,10 +2,10 @@
 
 //typedef unsigned int	 bsd_t;
 
+#define LOGGING_ON
+
 /* Structure for a page directory entry */
-
-#define DEBUG_MODE_ON true
-
+//#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -52,12 +52,10 @@ typedef struct {
   unsigned int pt_base	: 20;		/* location of page?		*/
 } pt_t;
 
-
-
-#ifdef DEBUG_MODE_ON
+#ifdef	LOGGING_ON
 #define LOG(STR, ...) do { kprintf("[ <DEBUG IN FUNCTION %s | PID %d> ]  : ", __func__,  currpid) ; kprintf(#STR, ##__VA_ARGS__) ; kprintf("\n"); } while (0)
 #else
-#define LOG			  asm("NOP") // This is production/submission version.
+#define LOG(STR,...)  asm("NOP") // This is production/submission version.
 #endif
 
 
@@ -72,6 +70,7 @@ typedef struct {
 #define FIFO 3
 #define LRU 4
 #define GLCLOCK 5
+#define AGING 6
 
 #define MAX_ID		7		/* You get 8 mappings, 0 - 7 */
 #define MIN_ID          0
@@ -86,6 +85,9 @@ typedef struct _frame_t{
 	bool8 dirty;
 	bsd_t backstore;
 	uint32 backstore_offset;
+  int refcount;
+  bool8 referenced; 
+  struct _frame_t * next;
 } frame_t;
 
 
@@ -95,7 +97,9 @@ typedef struct _frame_t{
 
 // api specific to lab 5 externs
 
-extern int srlpolicy;
+extern int policy;
+
+extern syscall get_current_replacment_policy();
 
 // in paging_tests.c
 
@@ -107,7 +111,8 @@ extern void vcreate_tests();
 extern void vcprocA(void);
 extern void vcprocB(void);
 extern void vcprocC(void);
-
+extern void vcprocD(void);
+extern void vcprocE(void);
 // in paging_register_setup.c
 
 extern void enable_paging(void);
@@ -119,7 +124,7 @@ extern void set_cr3(unsigned int n);
 extern unsigned int read_cr3(void);
 extern void switch_page_directory(unsigned int pd_addr);
 extern void flush_tlb();
-
+extern void invlpg(void* m);
 // in pagefault_handler.c
 extern syscall pagefault_handler(void);
 
@@ -132,11 +137,15 @@ extern frame_t * retrieve_new_frame(frame_type type);
 extern void initialize_all_frames(void);
 extern void initialize_frame(frame_t * frameptr);
 extern frame_t frames[NFRAMES];
-extern int free_frame(int frame_id);
+extern int free_frame(frame_t * frame);
 extern syscall frame_map_check(int pid, int store, int page_offset_in_store, int * pageframe_id );
+extern int get_free_frame_count(void);
+extern void update_frm_ages(void);
+extern frame_t * fifo_head;
+extern frame_t * evict_frame_using_fifo(void);
+extern frame_t * evict_frame_using_aging(void);
 // in dump32.c
 extern void dump32(unsigned long n);
-
 
 // in page_directory.c
 extern void initialize_page_directory(pd_t * page_dir);
@@ -162,3 +171,4 @@ extern syscall bs_map_check(int pid, unsigned int vir_add, int * store, int * pa
 #define PA_TO_FRAMEID(PA)                   (VADDRESS_TO_VPAGE(PA) - FRAME0)
 #define VADDRESS_TO_VPAGE(va)				((unsigned int) va/ PAGE_SIZE)
 #define VPAGE_TO_VADDRESS(vp)       (vp*PAGE_SIZE)
+#define BACKSTORE_ID_IS_VALID(bs)   (bs>=0 && bs<8)

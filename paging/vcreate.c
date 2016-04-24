@@ -54,13 +54,17 @@ void vcreate_tests()
 
 void basicTest()
 {
-	int pa, pb, pc;
+	int pa, pb, pc, pd, pe;
     pa = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
     pb = vcreate(vcprocB, 1024, 200, 20, "procB",0,0);
     pc = vcreate(vcprocC, 1024, 200, 20, "procC",0,0);
+    pd = vcreate(vcprocD, 1024, 200, 20, "procD", 0, 0);
+    pe = vcreate(vcprocE, 1024, 200, 20, "procE", 0,0);
     resume(pa);
     //resume(pb);
     //resume(pc);
+    resume(pd);
+    resume(pe);
     return;
 }
 
@@ -74,15 +78,32 @@ void vcprocA(void)
 	//addressTranslate(tmp);
 	//printMemory();
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	tmp = vgetmem(4090);
+	tmp = vgetmem((200 * PAGE_SIZE)-8);
 	kprintf(" Address provided is 0x%08x", tmp);
-	printMemory();
+	//printMemory();
 	int a;
 	kprintf(" Made it here");
-	for(a =0; a <4090; a++)
+	for(a =0; a < (200 *PAGE_SIZE)-8; a++)
 	{
 		tmp[a] = 'Y';
 	}
+	// Test the values are 'Y'
+
+	LOG("Number of free frames are  %d ", get_free_frame_count());
+	bool8 testPass = TRUE;
+	for (a = 0; a< (200 * PAGE_SIZE)-8; a++)
+	{
+		if(tmp[a]!= 'Y')
+		{
+			testPass = FALSE;
+			break;
+		}
+	}
+	if(testPass)
+		LOG("\n vcprocA has correct values \n");
+	else
+		LOG("\n vcprocA has incorrect values \n");
+
 
 	//vfreemem(tmp,200*PAGE_SIZE);
 	//kprintf("Character at address %d is %c \n",tmp, *tmp);
@@ -109,15 +130,99 @@ void vcprocC(void)
 {
 	char *tmp = (char *)0x01000001;
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	*tmp = 'G';
-	addressTranslate(tmp);
+	//printMemory();
+	*tmp = 'A';
+	//addressTranslate(tmp);
+	//printMemory();
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	tmp = vgetmem(sizeof(char));
-	*tmp = 'H';
+	tmp = vgetmem((200 * PAGE_SIZE)-8);
+	kprintf(" Address provided is 0x%08x", tmp);
+	printMemory();
+	int a;
+	kprintf(" Made it here");
+	for(a =0; a < (200 *PAGE_SIZE)-8; a++)
+	{
+		tmp[a] = 'Y';
+	}
+	//vfreemem(tmp,200*PAGE_SIZE);
+	//kprintf("Character at address %d is %c \n",tmp, *tmp);
+	//printMemory();
+}
+
+void vcprocD(void)
+{
+	char *tmp = (char *)0x01000001;
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	tmp = vgetmem(sizeof(char));
-	*tmp ='I';
+	//printMemory();
+	*tmp = 'A';
+	//addressTranslate(tmp);
+	//printMemory();
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
-	vfreemem(tmp, sizeof(char));
+	tmp = vgetmem((200 * PAGE_SIZE)-8);
+	kprintf(" Address provided is 0x%08x", tmp);
+	printMemory();
+	int a;
+	kprintf(" Made it here");
+	for(a =0; a < (200 *PAGE_SIZE)-8; a++)
+	{
+		tmp[a] = 'Y';
+	}
+	LOG("Number of free frames are  %d ", get_free_frame_count());
+	bool8 testPass = TRUE;
+	for (a = 0; a< (200 * PAGE_SIZE)-8; a++)
+	{
+		if(tmp[a]!= 'Y')
+		{
+			testPass = FALSE;
+			break;
+		}
+	}
+	if(testPass)
+		LOG("\n vcprocD has correct values \n");
+	else
+		LOG("\n vcprocD has incorrect values \n");
+
+	//vfreemem(tmp,200*PAGE_SIZE);
+	//kprintf("Character at address %d is %c \n",tmp, *tmp);
+	//printMemory();
+}
+
+void vcprocE(void)
+{
+	char *tmp = (char *)0x01000001;
 	kprintf("Character at address %d is %c \n",tmp, *tmp);
+	//printMemory();
+	*tmp = 'A';
+	//addressTranslate(tmp);
+	//printMemory();
+	kprintf("Character at address %d is %c \n",tmp, *tmp);
+	tmp = vgetmem((181* PAGE_SIZE)-8);
+	kprintf(" Address provided is 0x%08x", tmp);
+	printMemory();
+	int a;
+	kprintf(" Made it here");
+	for(a =0; a < (181 *PAGE_SIZE)-8; a++)
+	{
+		tmp[a] = 'Y';
+	}
+	LOG("Number of free frames are  %d ", get_free_frame_count());
+	bool8 testPass = TRUE;
+	for (a = 0; a< (181 * PAGE_SIZE)-8; a++)
+	{
+		if(tmp[a]!= 'Y')
+		{
+			testPass = FALSE;
+			break;
+		}
+	}
+	if(testPass)
+		LOG("\n vcprocE has correct values \n");
+	else
+		LOG("\n vcprocE has incorrect values \n");
+
+	
+
+	//vfreemem(tmp,200*PAGE_SIZE);
+	//kprintf("Character at address %d is %c \n",tmp, *tmp);
+	//printMemory();
 }

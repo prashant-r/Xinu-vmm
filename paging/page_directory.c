@@ -41,9 +41,13 @@ int free_page_directory(pid32 pid)
     intmask mask;
     mask = disable();
     struct procent * prptr;
-    prptr = &proctab[pid]; // Get the null process table entry
-    int frame_id = PA_TO_FRAMEID((unsigned int)prptr->pagedir);
-    free_frame(frame_id);
+    prptr = &proctab[pid]; // Get the process table entry
+    pd_t * pagedir = prptr->pagedir;
+    //TODO:
+    //for (i=0; i < PAGEDIRECTORY_ENTRIES_SIZE; i++)
+        //free_page_table(PA2FP(pt_t *)&pagedir[i]);
+    int frame_id = PA_TO_FRAMEID((unsigned int)pagedir);
+    free_frame(&frames[frame_id]);
     restore(mask);
     return OK;
 }

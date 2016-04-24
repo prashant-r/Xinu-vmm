@@ -30,7 +30,6 @@ extern	void	*maxheap;		/* Highest valid heap address	*/
 typedef struct _vhmdata_ {
 	uint32	minheap;		/* Start of heap		*/
 	uint32	maxheap;		/* Highest valid heap address	*/
-	uint32	mlength;
 	struct	memblk mlist;
 } vhmdata;
 
