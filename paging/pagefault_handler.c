@@ -1,5 +1,5 @@
 #include <xinu.h>
-syscall pagefault_handler(void)
+void pagefault_handler(void)
 {
 	intmask mask;
 	mask = disable();
@@ -29,7 +29,7 @@ syscall pagefault_handler(void)
 		LOG(" Accessed an illegal memory address 0x%08x ", fault_address);
 		restore(mask);
 		kill(currpid);
-		return SYSERR;
+		return;
 	}
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
 	prptr = &proctab[currpid];
@@ -60,7 +60,7 @@ syscall pagefault_handler(void)
 			LOG(" Replacement policy not working correctly! No available frames for ptable.");
 			restore(mask);
 			//kill(currpid);
-			return SYSERR;
+			return;
 		 }
 		 int k;
 		 for(k=0; k<1024; k++)
@@ -88,7 +88,7 @@ syscall pagefault_handler(void)
 			LOG(" Replacement policy not working correctly! No available frames for pframe.");
 			restore(mask);
 			//kill(currpid);
-			return SYSERR;
+			return;
 		}
 		pageframe_id = pageframe->id;
 		//LOG(" TRYING BACKEND NOW");
@@ -96,7 +96,7 @@ syscall pagefault_handler(void)
 		if (SYSERR == read_bs((char *) FRAMEID_TO_PHYSICALADDR(pageframe_id), bs_store_id, bs_store_page_offset)) {
 			LOG(" Reading backend store for frame id %d, bs store id %d, bs page offset %d failed", pageframe_id, bs_store_id, bs_store_page_offset);
 			restore(mask);
-			return SYSERR;
+			return;
 		}
 		pageframe->backstore = bs_store_id;
 		pageframe->backstore_offset = bs_store_page_offset;
@@ -114,7 +114,7 @@ syscall pagefault_handler(void)
 		LOG(" Error: Frame map check executed with fatal error. ");
 		restore(mask);
 		kill(currpid);
-		return SYSERR;
+		return;
 	}
 	//LOG(" Page frame obtained %d", pageframe_id);
 	ptab[pgt_off].pt_base = FRAME0 + pageframe_id;
@@ -125,5 +125,5 @@ syscall pagefault_handler(void)
 	//LOG(" Going to enable paging ");
 	flush_tlb();
 	restore(mask);
-	return OK;
+	return;
 }

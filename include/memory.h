@@ -33,6 +33,7 @@ typedef struct _vhmdata_ {
 	struct	memblk mlist;
 } vhmdata;
 
+
 extern void printMemory();
 
 /* Added by linker */

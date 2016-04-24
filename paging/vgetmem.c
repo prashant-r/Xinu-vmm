@@ -1,5 +1,4 @@
 #include <xinu.h>
-#include <kernel.h>
 #include <stdio.h>
 
 WORD *vgetmem (int nbytes)
@@ -13,22 +12,22 @@ WORD *vgetmem (int nbytes)
 		struct	memblk	*memptr;	/* Ptr to memory block		*/
 		/* Initialize the free list */
 		memptr = &(vhmdatavar->mlist);
-		kprintf(" Memptr is 0x%08x", memptr);
+		//kprintf(" Memptr is 0x%08x", memptr);
 		memptr->mnext = (struct memblk *)NULL;
 		memptr->mlength = 0;
 		/* Initialize the memory counters */
 		/*    Heap starts at the end of Xinu image */
 		vhmdatavar->maxheap = (uint32)((prptr->vpagestart + prptr->vpagesize)*4096);
 		vhmdatavar->minheap = (uint32)(prptr->vpagestart*4096);
-		LOG(" Max heap is 0x%08x \n", vhmdatavar->maxheap);
-		LOG(" Min heap is 0x%08x \n", vhmdatavar->minheap);
+		//LOG(" Max heap is 0x%08x \n", vhmdatavar->maxheap);
+		//LOG(" Min heap is 0x%08x \n", vhmdatavar->minheap);
 		memptr->mlength = (uint32)vhmdatavar->maxheap - (uint32)vhmdatavar->minheap;
-		LOG(" Size of mlength is %d \n", memptr->mlength);
+		//LOG(" Size of mlength is %d \n", memptr->mlength);
 		memptr->mnext = (struct memblk *)vhmdatavar->minheap;
 		memptr = memptr->mnext;
 		memptr->mnext = NULL;
 		memptr->mlength = (uint32)vhmdatavar->maxheap - (uint32)vhmdatavar->minheap;
-		LOG(" Size of mlength is %d \n", memptr->mlength);
+		//LOG(" Size of mlength is %d \n", memptr->mlength);
 		prptr->vhmdata = vhmdatavar;
 
 	}
@@ -82,7 +81,7 @@ void printMemory()
 						memptr = memptr->mnext) {
 		free_mem += memptr->mlength;
 	}
-	kprintf("%10d bytes of free memory.  Free list:\n", free_mem);
+	//kprintf("%10d bytes of free memory.  Free list:\n", free_mem);
 	for (memptr=memorylist->mnext; memptr!=NULL;memptr = memptr->mnext) {
 	    kprintf("           [0x%08X to 0x%08X]\r\n",
 		(uint32)memptr, ((uint32)memptr) + memptr->mlength - 1);
@@ -90,7 +89,7 @@ void printMemory()
 	}
 	else
 	{
-		kprintf(" No vheap data ");
+		//kprintf(" No vheap data ");
 	}
 }
 

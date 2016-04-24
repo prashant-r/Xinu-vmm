@@ -2,7 +2,7 @@
 
 int policy = FIFO;
 
-syscall  srpolicy (int srpolicy)
+int  srpolicy (int srpolicy)
 {
 	if(srpolicy == FIFO)
 	{

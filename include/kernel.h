@@ -26,6 +26,7 @@ typedef	int32	dbid32;		/* data block ID (used in file system)	*/
 typedef	int32	uid32;		/* ID for UDP table descriptor		*/
 typedef	uint32	bsd_t;		/* ID for backing store			*/
 
+#define local	static		/* Local procedure or variable declar.	*/
 /* Function declaration return types */
 
 typedef int32	syscall;	/* system call declaration		*/
@@ -35,7 +36,6 @@ typedef int32	process;	/* top-level function of a process	*/
 typedef	void	interrupt;	/* interrupt procedure			*/
 typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 
-#define local	static		/* Local procedure or variable declar.	*/
 
 /* Boolean constants */
 

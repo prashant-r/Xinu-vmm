@@ -1,11 +1,7 @@
 /* paging.h */
-
 //typedef unsigned int	 bsd_t;
 
 #define LOGGING_ON
-
-/* Structure for a page directory entry */
-//#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -15,11 +11,19 @@
 #define BS_MAX_STORES 8
 #define BS_MAX_PAGES 200
 #define PAGEFAULT_XNUM 14
+// shorthand helpers
+#define FRAMEID_TO_PHYSICALADDR(f)          ((FRAME0 + f) * PAGE_SIZE)
+#define FRAMEID_TO_VPAGE(f)					((FRAME0 + f))
+#define FRAMEID_IS_VALID(frame_id)          ((frame_id >= 0) && (frame_id < NFRAMES))
+#define PA_TO_FRAMEID(PA)                   (VADDRESS_TO_VPAGE(PA) - FRAME0)
+#define VADDRESS_TO_VPAGE(va)				((unsigned int) va/ PAGE_SIZE)
+#define VPAGE_TO_VADDRESS(vp)       		(vp*PAGE_SIZE)
+#define BACKSTORE_ID_IS_VALID(bs)  		    (bs>=0 && bs<8)
 
 
 typedef enum {DIR, PPTBLCAT1, PPTBLCAT2, VPTBL, PAGE, FREE} frame_type;
 
-
+/* Structure for a page directory entry */
 typedef struct {
 
   unsigned int pd_pres	: 1;		/* page table present?		*/
@@ -99,7 +103,7 @@ typedef struct _frame_t{
 
 extern int policy;
 
-extern syscall get_current_replacment_policy();
+extern int get_current_replacment_policy();
 
 // in paging_tests.c
 
@@ -126,7 +130,7 @@ extern void switch_page_directory(unsigned int pd_addr);
 extern void flush_tlb();
 extern void invlpg(void* m);
 // in pagefault_handler.c
-extern syscall pagefault_handler(void);
+extern void pagefault_handler(void);
 
 // in page_table.c
 extern int initialize_global_pagetables(void);
@@ -138,7 +142,7 @@ extern void initialize_all_frames(void);
 extern void initialize_frame(frame_t * frameptr);
 extern frame_t frames[NFRAMES];
 extern int free_frame(frame_t * frame);
-extern syscall frame_map_check(int pid, int store, int page_offset_in_store, int * pageframe_id );
+extern int frame_map_check(int pid, int store, int page_offset_in_store, int * pageframe_id );
 extern int get_free_frame_count(void);
 extern void update_frm_ages(void);
 extern frame_t * fifo_head;
@@ -162,13 +166,5 @@ typedef struct __virtu_addr{
 extern void * addressTranslate ( uint32 address);
 
 // in bs_map.c
-extern syscall do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages);
-extern syscall bs_map_check(int pid, unsigned int vir_add, int * store, int * page_offset_in_store );
-// shorthand helpers
-#define FRAMEID_TO_PHYSICALADDR(f)          ((FRAME0 + f) * PAGE_SIZE)
-#define FRAMEID_TO_VPAGE(f)					((FRAME0 + f))
-#define FRAMEID_IS_VALID(frame_id)          ((frame_id >= 0) && (frame_id < NFRAMES))
-#define PA_TO_FRAMEID(PA)                   (VADDRESS_TO_VPAGE(PA) - FRAME0)
-#define VADDRESS_TO_VPAGE(va)				((unsigned int) va/ PAGE_SIZE)
-#define VPAGE_TO_VADDRESS(vp)       (vp*PAGE_SIZE)
-#define BACKSTORE_ID_IS_VALID(bs)   (bs>=0 && bs<8)
+extern int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages);
+extern int bs_map_check(int pid, unsigned int vir_add, int * store, int * page_offset_in_store );

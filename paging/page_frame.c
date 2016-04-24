@@ -42,7 +42,7 @@ frame_t * retrieve_new_frame(frame_type type)
 	frame_t *tmp = NULL;
 	intmask mask;
 	mask = disable();
-    
+
     //1. Search the inverted page table for an empty frame. If one exists, stop.
 	if(type == PPTBLCAT2)
 	{
@@ -60,12 +60,11 @@ frame_t * retrieve_new_frame(frame_type type)
                 }
             }
         }
+    //2. Else, pick a page to replace (using the current replacement policy).
 
-    LOG(" No available_frames, must evict ");
-    //2. Else, pick a page to replace (using the current replacement policy).    
-    
     if(available_frame == NULL)
     {
+    	LOG(" No available_frames, must evict ");
     	if(policy == FIFO)
     		available_frame = evict_frame_using_fifo();
     	else if(policy == AGING)
@@ -94,7 +93,7 @@ frame_t * retrieve_new_frame(frame_type type)
             current = fifo_head;
             //LOG("NEVER CALLED THIS? 0x%08x", current);
             //LOG(" available_frame type 23 %d", fifo_head->type);
-            while (current != NULL) 
+            while (current != NULL)
             {
                 if (current->type == FREE) {
                 //LOG(" IN If condition");
@@ -103,10 +102,10 @@ frame_t * retrieve_new_frame(frame_type type)
                         current = previous->next;
                     } else {
                         fifo_head = current->next;
-                        current = fifo_head; 
+                        current = fifo_head;
                     }
                 }
-                else{ 
+                else{
                 //LOG(" IN else condition");
                 previous = current;
                 current = current->next;
@@ -190,14 +189,14 @@ int free_frame(frame_t * frame)
     //9. Mark the appropriate entry of pt as not present.
     pt[q].pt_pres = 0;
     LOG("Got here 1");
-    //10. If the page being removed belongs to the current process, 
+    //10. If the page being removed belongs to the current process,
     // invalidate the TLB entry for the page vp, using the invlpg instruction (see Intel Manual, volumes II and III for more details on this instruction).
     if(pid == currpid)
     {
     	invlpg((void *)a);
     }
 
-    // 11. In the inverted page table, decrement the reference count of the frame occupied by pt. 
+    // 11. In the inverted page table, decrement the reference count of the frame occupied by pt.
     frame_t * pt_frame = &frames[(pd[p].pd_base) - FRAME0];
 	decr_frame_refcount(pt_frame);
 
@@ -211,7 +210,7 @@ int free_frame(frame_t * frame)
     LOG("Got here 1.5");
 
 	//If the dirty bit for page vp was set in its page table, you must do the following:
-		//a)	Using the backing store map, find the store and page offset within the store, given pid and a. 
+		//a)	Using the backing store map, find the store and page offset within the store, given pid and a.
 		//		If the lookup fails, something is wrong. Print an error message and kill the process with id pid.
     	//b)	Write the page back to the backing store.
 	bool8 dirty = FALSE;
@@ -262,7 +261,7 @@ int get_free_frame_count(void)
 }
 
 
-syscall frame_map_check(int pid, int store, int page_offset_in_store, int * pageframe_id )
+int frame_map_check(int pid, int store, int page_offset_in_store, int * pageframe_id )
 {
 	intmask mask;
 	mask = disable();
@@ -313,8 +312,7 @@ syscall frame_map_check(int pid, int store, int page_offset_in_store, int * page
 
 
 void update_frm_ages(void)
-{	
+{
 
 }
-
 
