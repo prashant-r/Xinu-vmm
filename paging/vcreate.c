@@ -190,7 +190,7 @@ void vcprocE(void)
 	//addressTranslate(tmp);
 	//printMemory();
 	//kprintf("Character at address %d is %c \n",tmp, *tmp);
-	int count = (183 * PAGE_SIZE)-8;
+	int count = (200 * PAGE_SIZE)-8;
 	tmp = vgetmem(count);
 	//kprintf(" Address provided is 0x%08x", tmp);
 	printMemory();

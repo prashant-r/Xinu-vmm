@@ -148,6 +148,7 @@ extern void update_frm_ages(void);
 extern frame_t * fifo_head;
 extern frame_t * evict_frame_using_fifo(void);
 extern frame_t * evict_frame_using_aging(void);
+extern void correct_fifo_list(void);
 // in dump32.c
 extern void dump32(unsigned long n);
 
