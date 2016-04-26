@@ -9,9 +9,9 @@ int  srpolicy (int srpolicy)
 		policy = FIFO;
 		return OK;
 	}
-	else if(srpolicy == AGING)
+	else if(srpolicy == GLCLOCK)
 	{
-		policy = AGING;
+		policy = GLCLOCK;
 		return OK;
 	}
 	return SYSERR;

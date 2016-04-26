@@ -21,7 +21,7 @@
 #define BACKSTORE_ID_IS_VALID(bs)  		    (bs>=0 && bs<8)
 
 
-typedef enum {DIR, PPTBLCAT1, PPTBLCAT2, VPTBL, PAGE, FREE} frame_type;
+typedef enum {DIR, GPTBL, VPTBL, PAGE, FREE} frame_type;
 
 /* Structure for a page directory entry */
 typedef struct {
@@ -65,16 +65,14 @@ typedef struct {
 
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
-#define NFRAMES		600	/* number of frames		*/
+#define NFRAMES		30	/* number of frames		*/
 
-#define DEVICE_FRAME (576)
+#define DEVICE_LOC (576)
 #define MAP_SHARED 1
 #define MAP_PRIVATE 2
 
 #define FIFO 3
-#define LRU 4
-#define GLCLOCK 5
-#define AGING 6
+#define GLCLOCK 4
 
 #define MAX_ID		7		/* You get 8 mappings, 0 - 7 */
 #define MIN_ID          0
@@ -117,6 +115,7 @@ extern void vcprocB(void);
 extern void vcprocC(void);
 extern void vcprocD(void);
 extern void vcprocE(void);
+extern void vcprocF(void);
 // in paging_register_setup.c
 
 extern void enable_paging(void);
@@ -147,8 +146,8 @@ extern int get_free_frame_count(void);
 extern void update_frm_ages(void);
 extern frame_t * fifo_head;
 extern frame_t * evict_frame_using_fifo(void);
-extern frame_t * evict_frame_using_aging(void);
-extern void correct_fifo_list(void);
+extern frame_t * evict_frame_using_gclock(void);
+extern void evict_from_fifo_list(frame_t * frameptr);
 // in dump32.c
 extern void dump32(unsigned long n);
 

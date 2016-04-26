@@ -143,6 +143,10 @@ static	void	sysinit()
 
 	Defer.ndefers = 0;
 
+
+	/* global clock initialization */
+
+
 	/* Initialize process table entries free */
 
 	for (i = 0; i < NPROC; i++) {

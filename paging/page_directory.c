@@ -17,18 +17,18 @@ pd_t * retrieve_new_page_directory(void)
         int tbl_id;
         for(tbl_id = 0; tbl_id<PAGEDIRECTORY_ENTRIES_SIZE; tbl_id++)
         {
-            bzero(new_pagedirectory, sizeof(pd_t));
+            bzero((char *)new_pagedirectory, sizeof(pd_t));
             if( tbl_id < NUM_GLOBAL_PAGE_TABLES){
                 new_pagedirectory->pd_pres = 1;
                 new_pagedirectory->pd_write = 1;
                 new_pagedirectory->pd_base = FRAME0 +1+tbl_id;
                 //LOG("For tbl_id %d base is %d", tbl_id,FIRST_PAGE_TABLE_FRAME + tbl_id );
             }
-            else if(tbl_id == (DEVICE_FRAME))
+            else if(tbl_id == (DEVICE_LOC))
             {
             	new_pagedirectory->pd_pres = 1;
             	new_pagedirectory->pd_write = 1;
-            	new_pagedirectory->pd_base = FRAME0 + tbl_id;
+            	new_pagedirectory->pd_base = FRAME0 +1+ NUM_GLOBAL_PAGE_TABLES;
             }
             new_pagedirectory ++ ;
         }

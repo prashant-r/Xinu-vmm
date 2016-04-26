@@ -141,7 +141,7 @@ void switch_page_directory(unsigned int address)
 void invlpg(void* m)
 {
     asm volatile ( "invlpg (%0)" : : "b"(m) : "memory" );
-    LOG("Invalidated page");
+   // LOG("Invalidated page");
 }
 
 
