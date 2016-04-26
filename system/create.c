@@ -58,6 +58,8 @@ pid32	create(
 	prptr->prdesc[1] = CONSOLE;
 	prptr->prdesc[2] = CONSOLE;
 
+	pd_t * null_pg_dir = retrieve_new_page_directory();
+	prptr->pagedir = null_pg_dir;
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;
@@ -97,7 +99,6 @@ pid32	create(
 	*--saddr = 0;			/* %edi */
 	*pushsp = (unsigned long) (prptr->prstkptr = (char *)saddr);
 	// For demand paging
-	prptr->pagedir = retrieve_new_page_directory();
 	restore(mask);
 	return pid;
 }

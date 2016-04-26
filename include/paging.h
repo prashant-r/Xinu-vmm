@@ -1,7 +1,6 @@
 /* paging.h */
 //typedef unsigned int	 bsd_t;
-
-//#define LOGGING_ON
+#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -11,6 +10,8 @@
 #define BS_MAX_STORES 8
 #define BS_MAX_PAGES 200
 #define PAGEFAULT_XNUM 14
+#define INV_BS 10
+#define INV_BS_OFF 210
 // shorthand helpers
 #define FRAMEID_TO_PHYSICALADDR(f)          ((FRAME0 + f) * PAGE_SIZE)
 #define FRAMEID_TO_VPAGE(f)					((FRAME0 + f))
@@ -19,6 +20,7 @@
 #define VADDRESS_TO_VPAGE(va)				((unsigned int) va/ PAGE_SIZE)
 #define VPAGE_TO_VADDRESS(vp)       		(vp*PAGE_SIZE)
 #define BACKSTORE_ID_IS_VALID(bs)  		    (bs>=0 && bs<8)
+#define BACKSTORE_OFFSET_IS_VALID(off)		(off>=0 && off <BS_MAX_PAGES)
 
 
 typedef enum {DIR, GPTBL, VPTBL, PAGE, FREE} frame_type;
@@ -65,7 +67,7 @@ typedef struct {
 
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
-#define NFRAMES		30	/* number of frames		*/
+#define NFRAMES		25	/* number of frames		*/
 
 #define DEVICE_LOC (576)
 #define MAP_SHARED 1

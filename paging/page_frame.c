@@ -23,8 +23,8 @@ void initialize_all_frames(void)
 void initialize_frame(frame_t * frameptr)
 {
 	intmask mask = disable();
-	frameptr->backstore = 10;
-	frameptr->backstore_offset = 210;
+	frameptr->backstore = INV_BS;
+	frameptr->backstore_offset = INV_BS_OFF;
 	frameptr->type = FREE;
 	frameptr->dirty = FALSE;
 	frameptr->vp_no = NULL;
@@ -55,15 +55,15 @@ frame_t * retrieve_new_frame(frame_type type)
 
 	//1. Search the inverted page table for an empty frame. If one exists, stop.
 
-		int FRAME_COUNT_LOWER_BOUND = (type == GPTBL) ? 1 : 0;
-		int FRAM_COUNT_UPPER_BOUND = (type == GPTBL) ? NUM_GLOBAL_PAGE_TABLES+1 : NFRAMES-1;
-		for (frame = FRAME_COUNT_LOWER_BOUND; frame <= FRAM_COUNT_UPPER_BOUND; ++frame) {
-			frameptr = &frames[frame];
-			if(frameptr->type == FREE){
-				available_frame = frameptr;
-				break;
-			}
+	int FRAME_COUNT_LOWER_BOUND = (type == GPTBL) ? 1 : 0;
+	int FRAM_COUNT_UPPER_BOUND = (type == GPTBL) ? NUM_GLOBAL_PAGE_TABLES+1 : NFRAMES-1;
+	for (frame = FRAME_COUNT_LOWER_BOUND; frame <= FRAM_COUNT_UPPER_BOUND; ++frame) {
+		frameptr = &frames[frame];
+		if(frameptr->type == FREE){
+			available_frame = frameptr;
+			break;
 		}
+	}
 	//2. Else, pick a page to replace (using the current replacement policy).
 
 	if(available_frame == NULL)
@@ -77,32 +77,33 @@ frame_t * retrieve_new_frame(frame_type type)
 	if(available_frame!= NULL)
 	{
 		if(policy == FIFO){
-		//LOG(" available_frame type %d", available_frame->type);
-		initialize_frame(available_frame);
-		available_frame->type = type;
-		available_frame->pid = currpid;
-		//LOG(" TYPE IN ARGUMENT IS %d", type);
-		//LOG(" available_frame type %d", available_frame->type);
-		// Correct the fifo queue
-		if(fifo_head == NULL)
-		{
-			fifo_head = available_frame;
-			//LOG("FIFO head set to 0x%08x ", available_frame);
-			//LOG(" available_frame type 23 %d", fifo_head->type);
-		}
-		else
-		{
-			frame_t * current = fifo_head;
-			frame_t * previous = NULL;
-			while(current)
+			//LOG(" available_frame type %d", available_frame->type);
+			initialize_frame(available_frame);
+			available_frame->type = type;
+			available_frame->pid = currpid;
+
+			//LOG(" TYPE IN ARGUMENT IS %d", type);
+			//LOG(" available_frame type %d", available_frame->type);
+			// Correct the fifo queue
+			if(fifo_head == NULL)
 			{
-				previous = current;
-				current = current->next;
+				fifo_head = available_frame;
+				//LOG("FIFO head set to 0x%08x ", available_frame);
+				//LOG(" available_frame type 23 %d", fifo_head->type);
 			}
-			previous->next = available_frame;
-			//print_fifo_list();
-			//LOG(" fifo_head set to what again? ", fifo_head);
-		}
+			else
+			{
+				frame_t * current = fifo_head;
+				frame_t * previous = NULL;
+				while(current)
+				{
+					previous = current;
+					current = current->next;
+				}
+				previous->next = available_frame;
+				//print_fifo_list();
+				//LOG(" fifo_head set to what again? ", fifo_head);
+			}
 		}
 		else
 		{
@@ -151,6 +152,7 @@ int free_frame(frame_t * frame)
 {
 	intmask mask;
 	mask = disable();
+	//kprintf("C");
 	//print_frame(frame);
 	//kprintf("id %d type %d ", frame->id, frame->type);
 	//print_fifo_list();
@@ -192,72 +194,116 @@ int free_frame(frame_t * frame)
 		prptr = &proctab[pid];
 		pd_t * pd = prptr->pagedir;
 
-		//8. Let pt point to the pid's p_th page table.
-		pt_t * pt = (pt_t *) ((pd[p].pd_base) * PAGE_SIZE);
+		if( pd == NULL)
+		{
+			restore(mask);
+			return SYSERR;
+		}
+		bool8 pt_pres = FALSE;
+		pt_pres = (bool8) pd[p].pd_pres;
 
+		bool8 pg_pres = FALSE;
 		bool8 dirty = FALSE;
-			if (pt[q].pt_dirty)
-				dirty = TRUE;
+		if(pt_pres)
+		{	//8. Let pt point to the pid's p_th page table.
+			pt_t * pt = (pt_t *) ((pd[p].pd_base) * PAGE_SIZE);
+			pg_pres = (bool8) pt[q].pt_pres;
+			uint32 pg_base = (uint32) pt[q].pt_base;
+			if(pg_pres){
+				if((uint32)FRAMEID_TO_VPAGE(frame->id) == pg_base)
+				{
+					pg_pres = TRUE;
+					dirty  = pt[q].pt_dirty;
+				}
+				else
+				{
+					pg_pres = FALSE;
+				}
+			}
 
 
 
-		//9. Mark the appropriate entry of pt as not present.
-		pt[q].pt_pres = 0;
+
+		}
+		if(pg_pres)
+		{
+			frame_t * pt_frame = &frames[(pd[p].pd_base) - FRAME0];
+			pt_t * pt = (pt_t *) ((pd[p].pd_base) * PAGE_SIZE);
+			//9. Mark the appropriate entry of pt as not present.
+			pt[q].pt_pres = 0;
+			if(pid == currpid)
+				invlpg((void *)a);
+			if(pt_frame->type == VPTBL){
+				decr_frame_refcount(pt_frame);
+				if(pt_frame->refcount == 0){
+					pd[p].pd_pres = 0;
+					free_frame(pt_frame);
+
+				}
+
+
+				bzero((char *)&pt[q], sizeof(pt_t));
+			}
+			else if(pt_frame->type == GPTBL)
+			{
+				kprintf(" Uh  OH");
+			}
+			// If the reference count has reached zero, you should mark the appropriate entry in pd as "not present."
+			// This conserves frames by keeping only page tables which are necessary.
+			//LOG("Got here 1.5");
+
+			//If the dirty bit for page vp was set in its page table, you must do the following:
+			//a)	Using the backing store map, find the store and page offset within the store, given pid and a.
+			//		If the lookup fails, something is wrong. Print an error message and kill the process with id pid.
+			//b)	Write the page back to the backing store.
+
+			//LOG("Got here 2");
+			if(dirty){
+				//print_frame(frame);
+				if(BACKSTORE_ID_IS_VALID(frame->backstore) && BACKSTORE_OFFSET_IS_VALID(frame->backstore_offset))
+				{
+					//LOG("Frame %d was dirty", frame->id);
+					open_bs(frame->backstore);
+					write_bs(FRAMEID_TO_PHYSICALADDR(frame->id), frame->backstore, frame->backstore_offset);
+					close_bs(frame->backstore);
+				}
+				else
+				{
+					print_frame(frame);
+					kprintf("Fatal error: Cannot locate backstore for vpage %d to swap out page for pid %d ", vp, pid);
+					kill(pid);
+					initialize_frame(frame);
+					restore(mask);
+					return SYSERR;
+				}
+			}
+		}
+
+
+
 		//LOG("Got here 1");
 		//10. If the page being removed belongs to the current process,
 		// invalidate the TLB entry for the page vp, using the invlpg instruction (see Intel Manual, volumes II and III for more details on this instruction).
 		// 11. In the inverted page table, decrement the reference count of the frame occupied by pt.
 
 
-		frame_t * pt_frame = &frames[(pd[p].pd_base) - FRAME0];
-		decr_frame_refcount(pt_frame);
-		if(pt_frame->refcount == 0){
-			pd[p].pd_pres = 0;
-			free_frame(pt_frame);
 
-		}
-
-
-		// If the reference count has reached zero, you should mark the appropriate entry in pd as "not present."
-		// This conserves frames by keeping only page tables which are necessary.
-		//LOG("Got here 1.5");
-
-		//If the dirty bit for page vp was set in its page table, you must do the following:
-		//a)	Using the backing store map, find the store and page offset within the store, given pid and a.
-		//		If the lookup fails, something is wrong. Print an error message and kill the process with id pid.
-		//b)	Write the page back to the backing store.
-		if(pid == currpid)
-				invlpg((void *)a);
-		bzero((char *)&pt[q], sizeof(pt_t));
-		//LOG("Got here 2");
-		if(dirty){
-			//print_frame(frame);
-			if(BACKSTORE_ID_IS_VALID(frame->backstore))
-			{
-				//LOG("Frame %d was dirty", frame->id);
-				open_bs(frame->backstore);
-				write_bs(FRAMEID_TO_PHYSICALADDR(frame->id), frame->backstore, frame->backstore_offset);
-				close_bs(frame->backstore);
-			}
-			else
-			{
-				kprintf("Fatal error: Cannot locate backstore for vpage %d to swap out page for pid %d ", vp, pid);
-				kill(pid);
-				evict_from_fifo_list(frame);
-				initialize_frame(frame);
-				restore(mask);
-				return SYSERR;
-			}
-		}
 		enable_paging();
+		initialize_frame(frame);
 		// Update page table entries associated with this frame
 		// set the frame to be free
 	}
-	else
+	else if(frame->type == VPTBL)
 	{
 		evict_from_fifo_list(frame);
+		initialize_frame(frame);
 	}
-	initialize_frame(frame);
+	else
+	{
+		kprintf(" UH OHHH");
+		restore(mask);
+		return SYSERR;
+	}
 	restore(mask);
 	return OK;
 
@@ -300,7 +346,7 @@ void evict_from_fifo_list(frame_t * frameptr)
 				previous->next = current->next;
 				current = previous->next;
 			} else {
-			//LOG(" In else condition frame id %d", current->id);
+				//LOG(" In else condition frame id %d", current->id);
 				fifo_head = current->next;
 				current = fifo_head;
 			}

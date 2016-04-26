@@ -79,6 +79,10 @@ void pagefault_handler(void)
 	{
 		//LOG(" Frame map check returned empty. ");
 		pageframe = retrieve_new_frame(PAGE);
+		pageframe->backstore = bs_store_id;
+		pageframe->backstore_offset = bs_store_page_offset;
+		pageframe->vp_no = fault_address >>12;
+		pageframe->refcount++;
 		pageframe_id = pageframe->id;
 		ptab[pgt_off].pt_base = FRAME0 + pageframe_id;
 		ptab[pgt_off].pt_pres = 1;
@@ -103,10 +107,6 @@ void pagefault_handler(void)
 		}
 		//kprintf("After  %d ", ptab[pgt_off].pt_dirty);
 		close_bs(bs_store_id);
-		pageframe->backstore = bs_store_id;
-		pageframe->backstore_offset = bs_store_page_offset;
-		pageframe->vp_no = fault_address >>12;
-		pageframe->refcount++;
 	}
 	else if( frame_map_check_result == OK)
 	{

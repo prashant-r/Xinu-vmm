@@ -144,12 +144,8 @@ static	void	sysinit()
 	Defer.ndefers = 0;
 
 
-	/* global clock initialization */
-
-
-	/* Initialize process table entries free */
-
 	for (i = 0; i < NPROC; i++) {
+
 		prptr = &proctab[i];
 		prptr->prstate = PR_FREE;
 		prptr->prname[0] = NULLCH;
@@ -158,20 +154,27 @@ static	void	sysinit()
 		prptr->vpagesize = 0;
 		prptr->vpagestart =0;
 		prptr->vhmdata = NULL;
+		prptr->pagedir = NULL;
 	}
+
+
+	/* Initialize process table entries free */
+		prptr = &proctab[NULLPROC];
+		prptr->pagedir = NULL;
+		prptr->prstate = PR_CURR;
+		prptr->prprio = 0;
+		strncpy(prptr->prname, "prnull", 7);
+		prptr->prstkbase = getstk(NULLSTK);
+		prptr->prstklen = NULLSTK;
+		prptr->prstkptr = 0;
+		prptr->vpagesize = 0;
+		prptr->vpagestart =0;
+		prptr->vhmdata = NULL;
+
+
 
 	/* Initialize the Null process entry */	
 
-	prptr = &proctab[NULLPROC];
-	prptr->prstate = PR_CURR;
-	prptr->prprio = 0;
-	strncpy(prptr->prname, "prnull", 7);
-	prptr->prstkbase = getstk(NULLSTK);
-	prptr->prstklen = NULLSTK;
-	prptr->prstkptr = 0;
-	prptr->vpagesize = 0;
-	prptr->vpagestart =0;
-	prptr->vhmdata = NULL;
 	currpid = NULLPROC;
 	
 	/* Initialize semaphores */
@@ -210,11 +213,11 @@ void initialize_paging(void)
 {
 
 	initialize_all_frames(); // Initialize all necessary data structures.
-	pd_t * null_pg_dir = retrieve_new_page_directory();//Allocate and initialize a page directory for the null process.
-    
-    struct	procent	*prptr;		/* Ptr to process table entry	*/
-    prptr = &proctab[NULLPROC]; // Get the null process table entry
-    prptr->pagedir = null_pg_dir; // Set the null process' page directory here
+	struct	procent	*prptr;		/* Ptr to process table entry	*/
+	prptr = &proctab[NULLPROC]; // Get the null process table entry
+
+	pd_t * null_pg_dir = retrieve_new_page_directory();
+	prptr->pagedir = null_pg_dir;
 
     initialize_global_pagetables();//Create the page tables which map pages 0 through 4095 to the 16 MB physical address range.
                                    //We will call these global page tables.
