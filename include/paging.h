@@ -169,4 +169,4 @@ extern void * addressTranslate ( uint32 address);
 
 // in bs_map.c
 extern int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages);
-extern int bs_map_check(int pid, unsigned int vir_add, int * store, int * page_offset_in_store );
+extern int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store );

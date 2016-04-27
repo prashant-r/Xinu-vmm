@@ -36,11 +36,10 @@ int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages)
 	return OK;
 }
 
-int bs_map_check(int pid, unsigned int vir_add, int * store, int * page_offset_in_store )
+int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store )
 {
 	intmask mask;
 	mask = disable();
-	int vpage = VADDRESS_TO_VPAGE(vir_add);
 	if (isbadpid(pid) || (pid == NULLPROC)) {
 
 		LOG(" Bad pid requested in bs_map_check: %d .", pid);

@@ -258,24 +258,38 @@ int free_frame(frame_t * frame)
 			//b)	Write the page back to the backing store.
 
 			//LOG("Got here 2");
+
 			if(dirty){
+				bsd_t bs_store_id;
+				int bs_store_page_offset;
+				if(SYSERR == bs_map_check(pid, vp, &bs_store_id, &bs_store_page_offset))
+				{
+						kprintf(" Can't find the bs_map");
+						restore(mask);
+						kill(currpid);
+						return SYSERR;
+				}
 				//print_frame(frame);
-				if(BACKSTORE_ID_IS_VALID(frame->backstore) && BACKSTORE_OFFSET_IS_VALID(frame->backstore_offset))
+				if(BACKSTORE_ID_IS_VALID(frame->backstore) && BACKSTORE_OFFSET_IS_VALID(frame->backstore_offset) && frame->backstore == bs_store_id && frame->backstore_offset == bs_store_page_offset)
 				{
 					//LOG("Frame %d was dirty", frame->id);
 					open_bs(frame->backstore);
 					write_bs(FRAMEID_TO_PHYSICALADDR(frame->id), frame->backstore, frame->backstore_offset);
 					close_bs(frame->backstore);
 				}
-				else
-				{
-					print_frame(frame);
-					kprintf("Fatal error: Cannot locate backstore for vpage %d to swap out page for pid %d ", vp, pid);
-					kill(pid);
-					initialize_frame(frame);
-					restore(mask);
-					return SYSERR;
-				}
+				//else
+				//{
+				//	print_frame(frame);
+				//	kprintf("Fatal error: Cannot locate backstore for vpage %d to swap out page for pid %d ", vp, pid);
+				//	kill(pid);
+				//	initialize_frame(frame);
+				//	restore(mask);
+				//	return SYSERR;
+				//}
+			}
+
+			else{
+				print_frame(frame);
 			}
 		}
 

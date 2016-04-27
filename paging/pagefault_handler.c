@@ -17,7 +17,7 @@ void pagefault_handler(void)
 	uint32 pgt_off = (uint32) vir_add->page_table_offset;
 	uint32 pgd_off = (uint32) vir_add->page_directory_offset;
 
-	if(SYSERR == bs_map_check(currpid, fault_address, &bs_store_id, &bs_store_page_offset))
+	if(SYSERR == bs_map_check(currpid, fault_address >>12, &bs_store_id, &bs_store_page_offset))
 	{
 		kprintf(" Accessed an illegal memory address 0x%08x ", fault_address);
 		restore(mask);
@@ -113,9 +113,6 @@ void pagefault_handler(void)
 		//LOG(" Frame map check returned OK. ");
 		pageframe = &frames[pageframe_id];
 		pageframe->refcount++;
-		pageframe->vp_no = fault_address >>12;
-		pageframe->backstore = bs_store_id;
-		pageframe->backstore_offset = bs_store_page_offset;
 		flush_tlb();
 	}
 	else

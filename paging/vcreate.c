@@ -32,13 +32,14 @@ syscall vcreate (int *procaddr, int ssize, int hsize_in_pages, int priority, cha
 	}
 
 	npid = create(procaddr, ssize, priority, name, nargs, args);
+	prptr = &proctab[npid];
 	prptr->pagedir = retrieve_new_page_directory();
 	if (do_bs_map(npid, STARTING_PAGE,nabs, hsize_in_pages)!=OK) {
 	    LOG("Error executing bs_map()");
 	    restore(mask);
 	    return SYSERR;
 	}
-	prptr = &proctab[npid];
+
 	prptr->vpagestart = (STARTING_PAGE);
 	prptr->vpagesize = hsize_in_pages;
 	restore(mask);
@@ -88,12 +89,12 @@ void vcprocA(void)
 	//kprintf(" Made it here");
 	for(a =0; a < count; a++)
 	{
-		tmp[a] = 'X';
+		tmp[a] = 'N';
 	}
 	//LOG("Number of free frames are  %d ", get_free_frame_count());
 	int testcount = 0;
 	for (a = 0; a< count; a++)
-		if(tmp[a] == 'X')
+		if(tmp[a] == 'N')
 			testcount ++ ;
 
 	if(testcount == count)
@@ -161,11 +162,11 @@ void vcprocD(void)
 	int a;
 	//kprintf(" Made it here");
 	for(a =0; a < count; a++)
-		tmp[a] = 'Y';
+		tmp[a] = 'G';
 	//LOG("Number of free frames are  %d ", get_free_frame_count());
 	int testcount = 0;
 	for (a = 0; a< count; a++)
-		if(tmp[a]== 'Y')
+		if(tmp[a]== 'G')
 			testcount ++ ;
 	if(testcount == count)
 		kprintf("\n vcprocD has correct values \n");
