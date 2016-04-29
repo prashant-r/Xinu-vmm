@@ -1,6 +1,6 @@
 /* paging.h */
 //typedef unsigned int	 bsd_t;
-#define LOGGING_ON
+//#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -67,14 +67,14 @@ typedef struct {
 
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
-#define NFRAMES		25	/* number of frames		*/
+#define NFRAMES		50	/* number of frames		*/
 
 #define DEVICE_LOC (576)
 #define MAP_SHARED 1
 #define MAP_PRIVATE 2
 
 #define FIFO 3
-#define GLCLOCK 4
+#define AGING 4
 
 #define MAX_ID		7		/* You get 8 mappings, 0 - 7 */
 #define MIN_ID          0
@@ -86,12 +86,11 @@ typedef struct _frame_t{
 	uint32 vp_no;
 	pid32 pid;
 	frame_type type;
-	bool8 dirty;
 	bsd_t backstore;
 	uint32 backstore_offset;
-  int refcount;
-  bool8 referenced; 
-  struct _frame_t * next;
+	int age;
+	int refcount;
+	struct _frame_t * next;
 } frame_t;
 
 
@@ -101,6 +100,7 @@ typedef struct _frame_t{
 
 // api specific to lab 5 externs
 
+extern int pagefaults;
 extern int policy;
 
 extern int get_current_replacment_policy();
@@ -132,7 +132,7 @@ extern void flush_tlb();
 extern void invlpg(void* m);
 // in pagefault_handler.c
 extern void pagefault_handler(void);
-
+extern int get_faults();
 // in page_table.c
 extern int initialize_global_pagetables(void);
 extern int initialize_device_pagetable(void);
@@ -148,8 +148,9 @@ extern int get_free_frame_count(void);
 extern void update_frm_ages(void);
 extern frame_t * fifo_head;
 extern frame_t * evict_frame_using_fifo(void);
-extern frame_t * evict_frame_using_gclock(void);
+extern frame_t * evict_frame_using_aging(void);
 extern void evict_from_fifo_list(frame_t * frameptr);
+extern bool8 frame_was_accessed(frame_t * frame);
 // in dump32.c
 extern void dump32(unsigned long n);
 

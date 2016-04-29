@@ -32,14 +32,13 @@ syscall vcreate (int *procaddr, int ssize, int hsize_in_pages, int priority, cha
 	}
 
 	npid = create(procaddr, ssize, priority, name, nargs, args);
+	if (do_bs_map(npid, STARTING_PAGE,nabs, hsize_in_pages)!=OK) {
+		    LOG("Error executing bs_map()");
+		    restore(mask);
+		    return SYSERR;
+	}
 	prptr = &proctab[npid];
 	prptr->pagedir = retrieve_new_page_directory();
-	if (do_bs_map(npid, STARTING_PAGE,nabs, hsize_in_pages)!=OK) {
-	    LOG("Error executing bs_map()");
-	    restore(mask);
-	    return SYSERR;
-	}
-
 	prptr->vpagestart = (STARTING_PAGE);
 	prptr->vpagesize = hsize_in_pages;
 	restore(mask);
@@ -240,6 +239,5 @@ void vcprocF(void)
 	//kprintf("Character at address %d is %c \n",tmp, *tmp);
 	//printMemory();
 }
-
 
 

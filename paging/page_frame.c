@@ -1,5 +1,5 @@
 #include <xinu.h>
-
+#include <limits.h>
 frame_t frames[NFRAMES];
 frame_t * fifo_head;
 
@@ -26,12 +26,11 @@ void initialize_frame(frame_t * frameptr)
 	frameptr->backstore = INV_BS;
 	frameptr->backstore_offset = INV_BS_OFF;
 	frameptr->type = FREE;
-	frameptr->dirty = FALSE;
 	frameptr->vp_no = NULL;
 	frameptr->refcount = 0;
-	frameptr->referenced = FALSE;
 	frameptr->next = NULL;
 	frameptr->pid = -1;
+	frameptr->age = 0;
 	restore(mask);
 }
 
@@ -39,9 +38,9 @@ void print_frame( frame_t * frameptr)
 {
 
 	intmask mask = disable();
-	kprintf("\n");
-	kprintf("currpid %d id %d, pid %d, bs %d, off %d, type %d vp_no %d, refcount %d",currpid, frameptr->id, frameptr->pid, frameptr->backstore, frameptr->backstore_offset, frameptr->type, frameptr->vp_no, frameptr->refcount);
-	kprintf("\n");
+	LOG("\n");
+	LOG("currpid %d id %d, pid %d, bs %d, off %d, type %d vp_no %d, refcount %d, age %d",currpid, frameptr->id, frameptr->pid, frameptr->backstore, frameptr->backstore_offset, frameptr->type, frameptr->vp_no, frameptr->refcount, frameptr->age);
+	LOG("\n");
 }
 
 frame_t * retrieve_new_frame(frame_type type)
@@ -71,12 +70,11 @@ frame_t * retrieve_new_frame(frame_type type)
 		//LOG(" No available_frames, must evict ");
 		if(policy == FIFO)
 			available_frame = evict_frame_using_fifo();
-		else if(policy == GLCLOCK)
-			available_frame = evict_frame_using_gclock();
+		else if(policy == AGING)
+			available_frame = evict_frame_using_aging();
 	}
 	if(available_frame!= NULL)
 	{
-		if(policy == FIFO){
 			//LOG(" available_frame type %d", available_frame->type);
 			initialize_frame(available_frame);
 			available_frame->type = type;
@@ -104,13 +102,6 @@ frame_t * retrieve_new_frame(frame_type type)
 				//print_fifo_list();
 				//LOG(" fifo_head set to what again? ", fifo_head);
 			}
-		}
-		else
-		{
-			initialize_frame(available_frame);
-			available_frame->type = type;
-			available_frame->pid = currpid;
-		}
 	}
 	//LOG("Made it here too ");
 	restore(mask);
@@ -118,10 +109,36 @@ frame_t * retrieve_new_frame(frame_type type)
 }
 
 
-frame_t * evict_frame_using_gclock(void)
+frame_t * evict_frame_using_aging(void)
 {
-	return NULL;
+	intmask mask = disable();
+	//LOG(" Evict frame using AGING");
+	print_fifo_list();
+	frame_t * frame = fifo_head;
+	frame_t * selected = NULL;
+		while(frame != NULL){
+			if(frame->type == PAGE)
+			{
+				if(selected == NULL)
+					selected = frame;
+				else if(frame->age < selected ->age)
+				{
+					selected = frame;
+				}
+			}
+			frame = frame->next;
+		}
+		if(selected != NULL)
+		{
+			//LOG("Free frame %d", frame->id);
+			evict_from_fifo_list(selected);
+			free_frame(selected);
+		}
+		restore(mask);
+		kprintf("\n Evicted id %d", selected ->id);
+		return selected;
 }
+
 
 
 
@@ -152,8 +169,8 @@ int free_frame(frame_t * frame)
 {
 	intmask mask;
 	mask = disable();
-	//kprintf("C");
-	//print_frame(frame);
+	LOG("Freeing");
+	print_frame(frame);
 	//kprintf("id %d type %d ", frame->id, frame->type);
 	//print_fifo_list();
 	//kprintf("\n");
@@ -289,7 +306,7 @@ int free_frame(frame_t * frame)
 			}
 
 			else{
-				print_frame(frame);
+				//print_frame(frame);
 			}
 		}
 
@@ -312,11 +329,10 @@ int free_frame(frame_t * frame)
 		evict_from_fifo_list(frame);
 		initialize_frame(frame);
 	}
-	else
+	else if(frame->type == DIR)
 	{
-		kprintf(" UH OHHH");
-		restore(mask);
-		return SYSERR;
+		evict_from_fifo_list(frame);
+		initialize_frame(frame);
 	}
 	restore(mask);
 	return OK;
@@ -328,12 +344,14 @@ void print_fifo_list(void)
 	frame_t * current = fifo_head;
 	frame_t * previous = NULL;
 	int count = 0;
+	kprintf("\n");
 	while(current)
 	{
 		previous = current;
-		kprintf("| At %d frame %d owned by %d type %d |", count++, current->id, current->pid, current->type);
+		kprintf("\n | At %d frame %d owned by %d type %d age %d |", count++, current->id, current->pid, current->type, current->age);
 		current = current->next;
 	}
+	kprintf("\n");
 }
 
 
@@ -455,6 +473,51 @@ int frame_map_check(int pid, int store, int page_offset_in_store, int * pagefram
 
 void update_frm_ages(void)
 {
+	  frame_t * frame;
+	  frame_t * current;
+	  current = fifo_head;
+	  struct pentry * pptr;
+	  while (current!= NULL) {
+	        current->age = current->age >> 1;
+	        if (frame_was_accessed(current)) {
+
+	            current->age = current->age + 128;
+	            if (current->age > INT_MAX/2)
+	                current->age = INT_MAX/2;
+	        }
+	        current = current->next;
+	    }
 
 }
 
+
+bool8 frame_was_accessed(frame_t * frame)
+{
+	pid32 pid = frame->pid;
+	struct	procent	*prptr;
+	prptr = &proctab[pid];
+	pd_t * pd = prptr->pagedir;
+	int page_dir_entry;
+	int page_table_entry;
+	bool8 accessed = FALSE;
+	for(page_dir_entry = 5; page_dir_entry < PAGEDIRECTORY_ENTRIES_SIZE; page_dir_entry++){
+
+		{
+			if(pd[page_dir_entry].pd_pres)
+			{
+				pt_t * pt = (pt_t *) ((uint32)(pd[page_dir_entry].pd_base) << 12);
+				for( page_table_entry = 0; page_table_entry < PAGETABLE_ENTRIES_SIZE; page_table_entry ++ )
+				{
+
+				 if (pt[page_table_entry].pt_pres && pt[page_table_entry].pt_acc && ((uint32)(&pt[page_table_entry])>>12) == (FRAME0 + frame->id)) {
+					 kprintf(" This %d that %d", ((uint32)(&pt[page_table_entry])>>12), (FRAME0 + frame->id));
+					 accessed = TRUE;
+					 pt[page_table_entry].pt_acc = 0;
+				}
+			}
+
+			}
+		}
+	}
+	return accessed;
+}

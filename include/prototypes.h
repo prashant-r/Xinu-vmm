@@ -4,6 +4,7 @@ extern	status	addargs(pid32, int32, int32[], int32,char *, void *);
 /* in file allocate_bs.c */
 extern	bsd_t	allocate_bs(unsigned int);
 
+
 /* in file arp.c */
 
 extern	void	arp_init();

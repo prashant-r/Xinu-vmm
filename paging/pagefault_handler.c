@@ -1,4 +1,11 @@
 #include <xinu.h>
+
+int pagefaults;
+
+int get_faults()
+{
+	return pagefaults;
+}
 void pagefault_handler(void)
 {
 	intmask mask;
@@ -7,6 +14,7 @@ void pagefault_handler(void)
 	int bs_store_page_offset;
 	unsigned int fault_address = read_cr2();
 
+	pagefaults ++;
 	//LOG("handler with add 0x%08x", fault_address);
 	virtual_addr * vir_add  = NULL;
 
@@ -25,6 +33,10 @@ void pagefault_handler(void)
 		return;
 	}
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
+
+	 if (policy == AGING)
+		 update_frm_ages();
+
 	prptr = &proctab[currpid];
 	frame_t * frame = NULL;
 	pt_t * ptab = NULL;
