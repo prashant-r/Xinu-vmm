@@ -23,6 +23,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	/* Point to process table entry for the current (old) process */
 
 	ptold = &proctab[currpid];
+	pid32 oldpid = currpid;
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
 		if (ptold->prprio > firstkey(readylist)) {
@@ -39,15 +40,23 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	currpid = dequeue(readylist);
 	ptnew = &proctab[currpid];
+	if(oldpid == 6 && ptold->prstate == PR_FREE)
+		{
+		 	kprintf("\n Atleast its true %d state is going to switch to %d  ", ptold->prstate, currpid);
+		}
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
 	
  	switch_page_directory((uint32) ptnew->pagedir);
 
+ 	if(oldpid == 6 && ptold->prstate == PR_FREE)
+ 	{
+ 		kprintf("\n CHECK page dir from %d: 0x%08x to %d: 0x%08x whose state is %d ",oldpid, ptold->pagedir, currpid, ptnew->pagedir, ptnew->prstate);
+ 	}
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
-
 	/* Old process returns here when resumed */
-
+	if(oldpid == 6 && ptold->prstate == PR_FREE && currpid == 7)
+		kprintf("\n New process returned ");
 	return;
 }
 

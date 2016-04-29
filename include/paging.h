@@ -61,7 +61,7 @@ typedef struct {
 #ifdef	LOGGING_ON
 #define LOG(STR, ...) do { kprintf("[ <DEBUG IN FUNCTION %s | PID %d> ]  : ", __func__,  currpid) ; kprintf(#STR, ##__VA_ARGS__) ; kprintf("\n"); } while (0)
 #else
-#define LOG(STR,...)  asm("NOP") // This is production/submission version.
+#define LOG(STR,...) // This is production/submission version.
 #endif
 
 
@@ -112,7 +112,7 @@ extern void all_paging_tests();
 // in vcreate.c
 
 extern void vcreate_tests();
-extern void vcprocA(void);
+extern void vcprocA(char c);
 extern void vcprocB(void);
 extern void vcprocC(void);
 extern void vcprocD(void);
@@ -151,6 +151,8 @@ extern frame_t * evict_frame_using_fifo(void);
 extern frame_t * evict_frame_using_aging(void);
 extern void evict_from_fifo_list(frame_t * frameptr);
 extern bool8 frame_was_accessed(frame_t * frame);
+extern void inverted_pagetable_remove_mappings_for_pid(pid32 pid);
+extern void page_directory_frame_remove_mapping_for_pid(pid32 pid);
 // in dump32.c
 extern void dump32(unsigned long n);
 
@@ -171,3 +173,4 @@ extern void * addressTranslate ( uint32 address);
 // in bs_map.c
 extern int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages);
 extern int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store );
+extern void backing_store_remove_mappings_for_pid(pid32 pid);

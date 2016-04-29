@@ -17,7 +17,7 @@ process    main(void)
 
     all_paging_tests();
 
-    sleepms(5000);
+    sleepms(25000);
     kprintf(" Using AGING queue starting in 5 seconds ");
     sleepms(5000);
     srpolicy(AGING);

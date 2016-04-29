@@ -33,6 +33,8 @@ bsd_t	deallocate_bs (
 
 	bstab[store].isallocated = FALSE;
 	bstab[store].usecount = 0;
+	bstab[store].pid = -1;
+	bstab[store].vp_no = -1;
 
 	restore(mask);
 	return store;

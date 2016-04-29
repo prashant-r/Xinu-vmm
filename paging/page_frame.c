@@ -328,11 +328,13 @@ int free_frame(frame_t * frame)
 	{
 		evict_from_fifo_list(frame);
 		initialize_frame(frame);
+		enable_paging();
 	}
 	else if(frame->type == DIR)
 	{
 		evict_from_fifo_list(frame);
 		initialize_frame(frame);
+		enable_paging();
 	}
 	restore(mask);
 	return OK;
@@ -521,3 +523,40 @@ bool8 frame_was_accessed(frame_t * frame)
 	}
 	return accessed;
 }
+
+void inverted_pagetable_remove_mappings_for_pid(pid32 pid)
+{
+	intmask mask = disable();
+	int i;
+	frame_t * frame = NULL;
+	for(i = 0; i < NFRAMES; i++)
+	{
+		frame = &frames[i];
+		if(frame->type == FREE)
+			continue;
+		else if(frame->pid == pid && frame->type == VPTBL)
+			free_frame(frame);
+	}
+	restore(mask);
+	return;
+
+}
+
+void page_directory_frame_remove_mapping_for_pid(pid32 pid)
+{
+	intmask mask = disable();
+	struct	procent	*prptr;		/* Ptr to process table entry	*/
+	struct procent *prptrNull;
+	prptr = &proctab[pid];
+	prptrNull = &proctab[0];
+	pd_t * pd = prptr->pagedir;
+	int pdframe = PA_TO_FRAMEID((uint32)pd);
+	free_frame(&frames[pdframe]);
+	kprintf(" REM MAPPING dir from %d: 0x%08x to %d: 0x%08x",pid, prptr->pagedir, 0, prptrNull->pagedir);
+	prptr->pagedir = prptrNull->pagedir;
+	kprintf(" tried to kill the page directory");
+	restore(mask);
+	return;
+}
+
+

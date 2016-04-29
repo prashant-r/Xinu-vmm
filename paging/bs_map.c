@@ -80,3 +80,25 @@ int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store )
 	return SYSERR;
 
 }
+
+void backing_store_remove_mappings_for_pid(pid32 pid)
+{
+	int bs_id;
+	intmask mask = disable();
+	for (bs_id = 0; bs_id < BS_MAX_STORES; ++bs_id) {
+
+	  if (bstab[bs_id].isallocated == TRUE) {
+		  //LOG(" bstab allocated %d this pid %d pid %d vpage %d vp_no %d", bs_id,pid,  bstab[bs_id].pid,vpage,  bstab[bs_id].vp_no );
+		  if(bstab[bs_id].pid == pid)
+		  {
+			  deallocate_bs(bs_id);
+			  restore(mask);
+	      	  return;
+		  }
+
+	    }
+	}
+	restore(mask);
+	return;
+}
+

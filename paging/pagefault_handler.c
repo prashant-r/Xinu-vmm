@@ -27,7 +27,7 @@ void pagefault_handler(void)
 
 	if(SYSERR == bs_map_check(currpid, fault_address >>12, &bs_store_id, &bs_store_page_offset))
 	{
-		kprintf(" Accessed an illegal memory address 0x%08x ", fault_address);
+		kprintf(" Accessed an illegal memory address in process %d ", currpid);
 		restore(mask);
 		kill(currpid);
 		return;
@@ -56,20 +56,20 @@ void pagefault_handler(void)
 	{
 		//LOG(" Page table is NOT present");
 		ptab = retrieve_new_page_table(VPTBL);
-		frame = &frames[PA_TO_FRAMEID(ptab)];
-		frame_id = frame->id;
-		frame->vp_no = fault_address >>12;
-		frame->backstore = bs_store_id;
-		frame->backstore_offset = bs_store_page_offset;
-		frame->refcount ++;
 		//LOG(" Frame id in absent is %d", frame_id);
 	    if(ptab == NULL)
 		{
 			kprintf(" Replacement policy not working correctly! No available frames for ptable.");
-			restore(mask);
 			kill(currpid);
+			restore(mask);
 			return;
 		 }
+	     frame = &frames[PA_TO_FRAMEID(ptab)];
+	     frame_id = frame->id;
+	     frame->vp_no = fault_address >>12;
+	     frame->backstore = bs_store_id;
+	     frame->backstore_offset = bs_store_page_offset;
+	     frame->refcount ++;
 		 int k;
 		 for(k=0; k<1024; k++)
        	 {     
