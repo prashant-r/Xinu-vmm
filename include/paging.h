@@ -1,6 +1,6 @@
 /* paging.h */
 //typedef unsigned int	 bsd_t;
-//#define LOGGING_ON
+#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -112,24 +112,24 @@ extern void all_paging_tests();
 // in vcreate.c
 
 extern void vcreate_tests();
-extern void vcprocA(char c);
+extern void vcprocA(void);
 extern void vcprocB(void);
 extern void vcprocC(void);
 extern void vcprocD(void);
 extern void vcprocE(void);
 extern void vcprocF(void);
+extern void rpprocA(void);
 // in paging_register_setup.c
 
 extern void enable_paging(void);
-extern void disable_paging(void);
-extern void set_cr0(unsigned int n);
-extern unsigned int read_cr0();
-extern unsigned int read_cr2(void);
-extern void set_cr3(unsigned int n);
-extern unsigned int read_cr3(void);
-extern void switch_page_directory(unsigned int pd_addr);
-extern void flush_tlb();
-extern void invlpg(void* m);
+extern unsigned long read_cr0(void);
+extern unsigned long read_cr2(void);
+extern unsigned long read_cr3(void);
+extern unsigned long read_cr4(void);
+extern void write_cr0(unsigned long n) ;
+extern void write_cr3(unsigned long n);
+extern void write_cr4(unsigned long n);
+extern void switch_page_directory(unsigned long n);
 // in pagefault_handler.c
 extern void pagefault_handler(void);
 extern int get_faults();
@@ -160,7 +160,7 @@ extern void dump32(unsigned long n);
 extern void initialize_page_directory(pd_t * page_dir);
 extern pd_t * retrieve_new_page_directory(void);
 extern int free_page_directory(pid32 pid);
-
+extern void print_directory(pid32 pid);
 // in pagefault_handler.c
 typedef struct __virtu_addr{
   unsigned int page_offset : 12;

@@ -2,18 +2,33 @@
 
 void all_paging_tests()
 {
-
-	maxPageTest();
-
+	kprintf(" Running aging tests");
+	agingTest();
+	sleepms(20000);
+	//kprintf(" Running max page test");
+	//maxPageTest();
 
 }
+
+
+void agingTest()
+{
+	int pa, pb, pc, pd, pe, pf;
+	pa = vcreate(rpprocA, 1024, 200, 20, "rprocA", 0, 0);
+	resume(pa);
+	return;
+}
+
 void maxPageTest()
 {
 
 	int pa, pb, pc, pd, pe, pf;
-    pa = vcreate(vcprocA, 1024, 200, 20, "procA", 1, 'A');
-    pd = vcreate(vcprocA, 1024, 200, 20, "procD", 1, 'D');
-    pf = vcreate(vcprocA, 1024, 200, 20, "procF", 1, 'F');
+    pa = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
+    pd = vcreate(vcprocA, 1024, 200, 20, "procD", 0, 0);
+    pf = vcreate(vcprocA, 1024, 200, 20, "procF", 0, 0);
+
+    LOG(" Number of free frames is %d ", get_free_frame_count());
+
     resume(pa);
     sleepms(15);
     resume(pd);
@@ -22,9 +37,16 @@ void maxPageTest()
     return;
 }
 
-
-void vcprocA(char c)
+void vcprocA()
 {
+
+	char c = 'A';
+	//print_directory(currpid);
+
+
+	LOG(" In vcproc A");
+
+
 	char *tmp = (char *)0x01000001;
 	//kprintf("Character at address %d is %c \n",tmp, *tmp);
 	//printMemory();
@@ -53,16 +75,40 @@ void vcprocA(char c)
 	else
 		kprintf("\n proc%c has incorrect values in memset %d!= %d \n",c, testcount, count);
 
-	vfreemem(tmp,count-8);
+
+	vfreemem(tmp, count);
+
 	testcount = 0;
+	vfreemem(tmp, count);
 	for (a = 0; a< count; a++)
 			if(tmp[a] == c)
 				testcount ++ ;
-
 	if(testcount == 0)
 			kprintf("\n proc%c has correct values in memfree \n",c);
 		else
 			kprintf("\n proc%c has incorrect values in memfree %d!= %d \n",c, testcount, count);
+	while(TRUE)
+	{
+
+	}
+}
 
 
+void rpprocA()
+{
+	char c = 'G';
+	int count = (150 * PAGE_SIZE)-8;
+	char *tmp = vgetmem(count);
+	int a;
+	for(a =0; a < count; a++)
+		{
+			tmp[a] = c;
+		}
+
+	srand(count);
+	int g;
+	for( g = 0; g < 9000; g++){
+		tmp[rand()] = ' Y';
+	}
+	kprintf(" Number of faults is :" +  get_faults());
 }

@@ -2,7 +2,7 @@ make rebuild
 make clean
 make
 cd ../rdserver
-> backing_store
+cat /dev/null > backing_store
 make clean
 make
 kill -9 $(pidof rdserver)

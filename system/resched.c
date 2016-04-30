@@ -47,13 +47,17 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
 	
- 	switch_page_directory((uint32) ptnew->pagedir);
+
+	//kprintf(" old 0x%08x new 0x%08x", ptold->pagedir, ptnew->pagedir);
+ 	switch_page_directory(ptnew->pagedir);
 
  	if(oldpid == 6 && ptold->prstate == PR_FREE)
  	{
  		kprintf("\n CHECK page dir from %d: 0x%08x to %d: 0x%08x whose state is %d ",oldpid, ptold->pagedir, currpid, ptnew->pagedir, ptnew->prstate);
  	}
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
+
+	enable_paging();
 	/* Old process returns here when resumed */
 	if(oldpid == 6 && ptold->prstate == PR_FREE && currpid == 7)
 		kprintf("\n New process returned ");

@@ -14,6 +14,7 @@ syscall	kill(
 	struct	procent *prptr;		/* Ptr to process' table entry	*/
 	int32	i;			/* Index into descriptors	*/
 
+	LOG(" Called kill ");
 	mask = disable();
 	if (isbadpid(pid) || (pid == NULLPROC)
 	    || ((prptr = &proctab[pid])->prstate) == PR_FREE) {
@@ -38,6 +39,7 @@ syscall	kill(
 		prptr->prstate = PR_FREE;	/* Suicide */
 		kprintf(" trying to kill active now %d ", currpid);
 		resched();
+		break;
 
 	case PR_SLEEP:
 	case PR_RECTIM:
@@ -50,12 +52,12 @@ syscall	kill(
 		semtab[prptr->prsem].scount++;
 		kprintf(" trying to kill wait now %d ", currpid);
 		/* Fall through */
-
+		break;
 	case PR_READY:
 		getitem(pid);		/* Remove from queue */
 		kprintf(" trying to kill ready now %d ", currpid);
 		/* Fall through */
-
+		break;
 	default:
 		prptr->prstate = PR_FREE;
 	}

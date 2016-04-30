@@ -51,3 +51,20 @@ int free_page_directory(pid32 pid)
     restore(mask);
     return OK;
 }
+
+
+void print_directory(pid32 pid)
+{
+	intmask mask = disable();
+	struct procent * prptr = &proctab[pid];
+
+int tbl_id;
+	for(tbl_id = 0; tbl_id<PAGEDIRECTORY_ENTRIES_SIZE; tbl_id++)
+	 {
+		if(prptr->pagedir[tbl_id].pd_pres)
+		{
+			LOG(" \n For %d base is 0x%08x", tbl_id, prptr->pagedir[tbl_id].pd_base);
+		}
+	 }
+	restore(mask);
+}

@@ -12,13 +12,12 @@ void pagefault_handler(void)
 	mask = disable();
 	int bs_store_id;
 	int bs_store_page_offset;
-	unsigned int fault_address = read_cr2();
-
+	unsigned int fault_address = (unsigned int )read_cr2();
 	pagefaults ++;
-	//LOG("handler with add 0x%08x", fault_address);
+	//LOG("handler with add 0x%08x pd 0x%08x", fault_address, read_cr3());
 	virtual_addr * vir_add  = NULL;
 
-	vir_add = (virtual_addr *) & fault_address;
+	vir_add = (virtual_addr *)&fault_address;
 
 
 	uint32 pg_off  = (uint32) vir_add->page_offset;
@@ -27,9 +26,9 @@ void pagefault_handler(void)
 
 	if(SYSERR == bs_map_check(currpid, fault_address >>12, &bs_store_id, &bs_store_page_offset))
 	{
-		kprintf(" Accessed an illegal memory address in process %d ", currpid);
-		restore(mask);
+		LOG(" Accessed an illegal memory address in process %d 0x%08x ", currpid, fault_address);
 		kill(currpid);
+		restore(mask);
 		return;
 	}
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
@@ -99,7 +98,7 @@ void pagefault_handler(void)
 		ptab[pgt_off].pt_base = FRAME0 + pageframe_id;
 		ptab[pgt_off].pt_pres = 1;
 		ptab[pgt_off].pt_write = 1;
-		flush_tlb();
+		enable_paging();
 		//kprintf("Before  %d ", ptab[pgt_off].pt_dirty);
 		if(pageframe == NULL)
 		{
@@ -125,7 +124,7 @@ void pagefault_handler(void)
 		//LOG(" Frame map check returned OK. ");
 		pageframe = &frames[pageframe_id];
 		pageframe->refcount++;
-		flush_tlb();
+		enable_paging();
 	}
 	else
 	{

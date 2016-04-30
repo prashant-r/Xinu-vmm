@@ -38,6 +38,8 @@ syscall vcreate (int *procaddr, int ssize, int hsize_in_pages, int priority, cha
 		    return SYSERR;
 	}
 	prptr = &proctab[npid];
+	pd_t * new_pg_dir = retrieve_new_page_directory();
+	prptr->pagedir = new_pg_dir;
 	kprintf(" Page directory for proc %d  is 0x%08x ", npid, prptr->pagedir );
 	prptr->vpagestart = (STARTING_PAGE);
 	prptr->vpagesize = hsize_in_pages;

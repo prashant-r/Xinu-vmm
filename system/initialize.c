@@ -228,7 +228,7 @@ void initialize_paging(void)
                                    //This means you will need to fill page directory entry at index #576 (0x90000000 >> 22) and
                                    //all the entries in the corresponding page table
 	
-	switch_page_directory((uint32) null_pg_dir); // Set the PDBR register to the page directory of the null process.
+	switch_page_directory( null_pg_dir); // Set the PDBR register to the page directory of the null process.
 	
 	set_evec(14,(uint32)pagefault_interrupt); // Install the page fault interrupt service routine.
 

@@ -8,7 +8,6 @@ syscall vfreemem (char * block_ptr, int size_in_bytes)
 	int nbytes = size_in_bytes;
 	char * blkaddr = block_ptr;
 	uint32	top;
-
 	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) prptr->vhmdata->minheap)
 			  || ((uint32) blkaddr > (uint32) prptr->vhmdata->maxheap)) {
 		restore(mask);
@@ -23,7 +22,6 @@ syscall vfreemem (char * block_ptr, int size_in_bytes)
 		prev = next;
 		next = next->mnext;
 	}
-
 	if (prev == memorylist) {		/* Compute top of previous block*/
 		top = (uint32) NULL;
 	} else {
@@ -52,7 +50,6 @@ syscall vfreemem (char * block_ptr, int size_in_bytes)
 	}
 
 	/* Coalesce with next block if adjacent */
-
 	if (((uint32) block + block->mlength) == (uint32) next) {
 		block->mlength += next->mlength;
 		block->mnext = next->mnext;

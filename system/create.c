@@ -42,6 +42,7 @@ pid32	create(
 	prptr = &proctab[pid];
 
 	/* Initialize process table entry for new process */
+
 	prptr->prstate = PR_SUSP;	/* Initial state is suspended	*/
 	prptr->prprio = priority;
 	prptr->prstkbase = (char *)saddr;
@@ -53,13 +54,12 @@ pid32	create(
 	prptr->prparent = (pid32)getpid();
 	prptr->prhasmsg = FALSE;
 
+	struct procent * prptrNULL = &proctab[NULLPROC];
+	prptr->pagedir = prptrNULL->pagedir;
 	/* Set up stdin, stdout, and stderr descriptors for the shell	*/
 	prptr->prdesc[0] = CONSOLE;
 	prptr->prdesc[1] = CONSOLE;
 	prptr->prdesc[2] = CONSOLE;
-
-	pd_t * new_pg_dir = retrieve_new_page_directory();
-	prptr->pagedir = new_pg_dir;
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;

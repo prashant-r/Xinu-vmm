@@ -38,9 +38,7 @@ void print_frame( frame_t * frameptr)
 {
 
 	intmask mask = disable();
-	LOG("\n");
 	LOG("currpid %d id %d, pid %d, bs %d, off %d, type %d vp_no %d, refcount %d, age %d",currpid, frameptr->id, frameptr->pid, frameptr->backstore, frameptr->backstore_offset, frameptr->type, frameptr->vp_no, frameptr->refcount, frameptr->age);
-	LOG("\n");
 }
 
 frame_t * retrieve_new_frame(frame_type type)
@@ -135,7 +133,7 @@ frame_t * evict_frame_using_aging(void)
 			free_frame(selected);
 		}
 		restore(mask);
-		kprintf("\n Evicted id %d", selected ->id);
+		//kprintf("\n Evicted id %d", selected ->id);
 		return selected;
 }
 
@@ -169,8 +167,10 @@ int free_frame(frame_t * frame)
 {
 	intmask mask;
 	mask = disable();
-	LOG("Freeing");
-	print_frame(frame);
+	//LOG("Freeing");
+	//print_frame(frame);
+	if(frame->id <5)
+		LOG(" WHAT THE FUCK %d ", frame->id);
 	//kprintf("id %d type %d ", frame->id, frame->type);
 	//print_fifo_list();
 	//kprintf("\n");
@@ -206,6 +206,7 @@ int free_frame(frame_t * frame)
 		//6. Let pid be the process id of the process owning vp.
 		pid32 pid = frame->pid;
 
+
 		//7. Let pd point to the page directory of process pid.
 		struct	procent	*prptr;		/* Ptr to process table entry	*/
 		prptr = &proctab[pid];
@@ -213,6 +214,7 @@ int free_frame(frame_t * frame)
 
 		if( pd == NULL)
 		{
+			LOG(" pd doesn't exist ");
 			restore(mask);
 			return SYSERR;
 		}
@@ -248,8 +250,6 @@ int free_frame(frame_t * frame)
 			pt_t * pt = (pt_t *) ((pd[p].pd_base) * PAGE_SIZE);
 			//9. Mark the appropriate entry of pt as not present.
 			pt[q].pt_pres = 0;
-			if(pid == currpid)
-				invlpg((void *)a);
 			if(pt_frame->type == VPTBL){
 				decr_frame_refcount(pt_frame);
 				if(pt_frame->refcount == 0){
@@ -318,7 +318,8 @@ int free_frame(frame_t * frame)
 		// 11. In the inverted page table, decrement the reference count of the frame occupied by pt.
 
 
-
+		//LOG(" Free frame");
+		//print_frame(frame);
 		enable_paging();
 		initialize_frame(frame);
 		// Update page table entries associated with this frame
@@ -332,9 +333,16 @@ int free_frame(frame_t * frame)
 	}
 	else if(frame->type == DIR)
 	{
-		evict_from_fifo_list(frame);
-		initialize_frame(frame);
-		enable_paging();
+		struct procent * prptrNULL = &proctab[NULLPROC];
+		pd_t * null_pg_dir = prptrNULL->pagedir;
+		struct	procent	*prptr;		/* Ptr to process table entry	*/
+		prptr = &proctab[currpid];
+		if(prptr->pagedir!= null_pg_dir)
+		{
+			evict_from_fifo_list(frame);
+			initialize_frame(frame);
+			enable_paging();
+		}
 	}
 	restore(mask);
 	return OK;
@@ -346,14 +354,14 @@ void print_fifo_list(void)
 	frame_t * current = fifo_head;
 	frame_t * previous = NULL;
 	int count = 0;
-	kprintf("\n");
+	//kprintf("\n");
 	while(current)
 	{
 		previous = current;
-		kprintf("\n | At %d frame %d owned by %d type %d age %d |", count++, current->id, current->pid, current->type, current->age);
+		//kprintf("\n | At %d frame %d owned by %d type %d age %d |", count++, current->id, current->pid, current->type, current->age);
 		current = current->next;
 	}
-	kprintf("\n");
+	//kprintf("\n");
 }
 
 
@@ -457,7 +465,7 @@ int frame_map_check(int pid, int store, int page_offset_in_store, int * pagefram
 
 		if (frames[fr_id].type == PAGE) {
 
-			if(frames[fr_id].pid == currpid && frames[fr_id].backstore == store && frames[fr_id].backstore_offset == page_offset_in_store)
+			if(frames[fr_id].pid == pid && frames[fr_id].backstore == store && frames[fr_id].backstore_offset == page_offset_in_store)
 			{
 				//kprintf(" Was a  match %d, %d, %d, %d, %d, %d", frames[fr_id].pid, currpid, frames[fr_id].backstore, store, frames[fr_id].backstore_offset, page_offset_in_store);
 				*pageframe_id = fr_id;
@@ -512,7 +520,7 @@ bool8 frame_was_accessed(frame_t * frame)
 				{
 
 				 if (pt[page_table_entry].pt_pres && pt[page_table_entry].pt_acc && ((uint32)(&pt[page_table_entry])>>12) == (FRAME0 + frame->id)) {
-					 kprintf(" This %d that %d", ((uint32)(&pt[page_table_entry])>>12), (FRAME0 + frame->id));
+					 //kprintf(" This %d that %d", ((uint32)(&pt[page_table_entry])>>12), (FRAME0 + frame->id));
 					 accessed = TRUE;
 					 pt[page_table_entry].pt_acc = 0;
 				}
@@ -552,9 +560,9 @@ void page_directory_frame_remove_mapping_for_pid(pid32 pid)
 	pd_t * pd = prptr->pagedir;
 	int pdframe = PA_TO_FRAMEID((uint32)pd);
 	free_frame(&frames[pdframe]);
-	kprintf(" REM MAPPING dir from %d: 0x%08x to %d: 0x%08x",pid, prptr->pagedir, 0, prptrNull->pagedir);
+	//kprintf(" REM MAPPING dir from %d: 0x%08x to %d: 0x%08x",pid, prptr->pagedir, 0, prptrNull->pagedir);
 	prptr->pagedir = prptrNull->pagedir;
-	kprintf(" tried to kill the page directory");
+	//kprintf(" tried to kill the page directory");
 	restore(mask);
 	return;
 }

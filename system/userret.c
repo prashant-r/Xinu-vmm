@@ -8,5 +8,6 @@
  */
 void	userret(void)
 {
+	LOG(" CALLED USERRET");
 	kill(getpid());			/* Force process to exit */
 }
