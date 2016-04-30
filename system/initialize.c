@@ -154,7 +154,6 @@ static	void	sysinit()
 		prptr->prprio = 0;
 		prptr->vpagesize = 0;
 		prptr->vpagestart =0;
-		prptr->vhmdata = NULL;
 		prptr->pagedir = NULL;
 	}
 
@@ -170,7 +169,6 @@ static	void	sysinit()
 		prptr->prstkptr = 0;
 		prptr->vpagesize = 0;
 		prptr->vpagestart =0;
-		prptr->vhmdata = NULL;
 
 
 

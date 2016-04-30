@@ -53,9 +53,6 @@ pid32	create(
 	prptr->prsem = -1;
 	prptr->prparent = (pid32)getpid();
 	prptr->prhasmsg = FALSE;
-
-	struct procent * prptrNULL = &proctab[NULLPROC];
-	prptr->pagedir = prptrNULL->pagedir;
 	/* Set up stdin, stdout, and stderr descriptors for the shell	*/
 	prptr->prdesc[0] = CONSOLE;
 	prptr->prdesc[1] = CONSOLE;
@@ -98,6 +95,9 @@ pid32	create(
 	*--saddr = 0;			/* %esi */
 	*--saddr = 0;			/* %edi */
 	*pushsp = (unsigned long) (prptr->prstkptr = (char *)saddr);
+
+
+	prptr->pagedir = retrieve_new_page_directory();
 	// For demand paging
 	restore(mask);
 	return pid;

@@ -170,7 +170,11 @@ int free_frame(frame_t * frame)
 	//LOG("Freeing");
 	//print_frame(frame);
 	if(frame->id <5)
-		LOG(" WHAT THE FUCK %d ", frame->id);
+	{
+		LOG(" WHAT THE FUCK %d %d", frame->id, frame->type);
+		restore(mask);
+		return OK;
+	}
 	//kprintf("id %d type %d ", frame->id, frame->type);
 	//print_fifo_list();
 	//kprintf("\n");
@@ -328,8 +332,8 @@ int free_frame(frame_t * frame)
 	else if(frame->type == VPTBL)
 	{
 		evict_from_fifo_list(frame);
-		initialize_frame(frame);
 		enable_paging();
+		initialize_frame(frame);
 	}
 	else if(frame->type == DIR)
 	{
@@ -340,8 +344,11 @@ int free_frame(frame_t * frame)
 		if(prptr->pagedir!= null_pg_dir)
 		{
 			evict_from_fifo_list(frame);
-			initialize_frame(frame);
+			prptr->pagedir = prptrNULL->pagedir;
+			switch_page_directory(prptr->pagedir);
 			enable_paging();
+			initialize_frame(frame);
+
 		}
 	}
 	restore(mask);
@@ -561,7 +568,6 @@ void page_directory_frame_remove_mapping_for_pid(pid32 pid)
 	int pdframe = PA_TO_FRAMEID((uint32)pd);
 	free_frame(&frames[pdframe]);
 	//kprintf(" REM MAPPING dir from %d: 0x%08x to %d: 0x%08x",pid, prptr->pagedir, 0, prptrNull->pagedir);
-	prptr->pagedir = prptrNull->pagedir;
 	//kprintf(" tried to kill the page directory");
 	restore(mask);
 	return;

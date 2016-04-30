@@ -17,7 +17,6 @@ pd_t * retrieve_new_page_directory(void)
         int tbl_id;
         for(tbl_id = 0; tbl_id<PAGEDIRECTORY_ENTRIES_SIZE; tbl_id++)
         {
-            bzero((char *)new_pagedirectory, sizeof(pd_t));
             if( tbl_id < NUM_GLOBAL_PAGE_TABLES){
                 new_pagedirectory->pd_pres = 1;
                 new_pagedirectory->pd_write = 1;
@@ -29,6 +28,21 @@ pd_t * retrieve_new_page_directory(void)
             	new_pagedirectory->pd_pres = 1;
             	new_pagedirectory->pd_write = 1;
             	new_pagedirectory->pd_base = FRAME0 +1+ NUM_GLOBAL_PAGE_TABLES;
+            }
+            else
+            {
+            	new_pagedirectory->pd_pres  = 0;       /* page table present?      */
+            	new_pagedirectory->pd_write = 0;       /* page is writable?        */
+            	new_pagedirectory->pd_user  = 0;       /* is user level protection? */
+            	new_pagedirectory->pd_pwt   = 0;       /* write through caching for pt?*/
+            	new_pagedirectory->pd_pcd   = 0;       /* cache disable for this pt?   */
+            	new_pagedirectory->pd_acc   = 0;       /* page table was accessed? */
+            	new_pagedirectory->pd_mbz   = 0;       /* must be zero         */
+            	new_pagedirectory->pd_fmb   = 0;       /* four MB pages?       */
+            	new_pagedirectory->pd_global= 0;       /* global (ignored)     */
+            	new_pagedirectory->pd_avail = 0;       /* for programmer's use     */
+            	new_pagedirectory->pd_base  = 0;       /* location of page table?  */
+
             }
             new_pagedirectory ++ ;
         }

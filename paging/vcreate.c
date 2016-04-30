@@ -14,6 +14,7 @@ syscall vcreate (int *procaddr, int ssize, int hsize_in_pages, int priority, cha
 	struct	procent	*prptr;		/* Pointer to proc. table entry */
 	bsd_t nabs = EMPTY;
 
+
 	mask = disable();
 	if(hsize_in_pages < 1)
 	{
@@ -38,11 +39,13 @@ syscall vcreate (int *procaddr, int ssize, int hsize_in_pages, int priority, cha
 		    return SYSERR;
 	}
 	prptr = &proctab[npid];
-	pd_t * new_pg_dir = retrieve_new_page_directory();
-	prptr->pagedir = new_pg_dir;
 	kprintf(" Page directory for proc %d  is 0x%08x ", npid, prptr->pagedir );
 	prptr->vpagestart = (STARTING_PAGE);
 	prptr->vpagesize = hsize_in_pages;
+	prptr->vmemlist.mlist.mnext = (struct mblock *) (STARTING_PAGE*4096);
+	prptr->vmemlist.mlist.mlength = hsize_in_pages;
+	prptr->vmemlist.maxheap = (uint32)((prptr->vpagestart + prptr->vpagesize)*4096);
+	prptr->vmemlist.minheap = (uint32)(prptr->vpagestart*4096);
 	restore(mask);
 	return npid;
 }

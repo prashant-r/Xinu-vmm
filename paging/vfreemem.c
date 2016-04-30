@@ -8,14 +8,14 @@ syscall vfreemem (char * block_ptr, int size_in_bytes)
 	int nbytes = size_in_bytes;
 	char * blkaddr = block_ptr;
 	uint32	top;
-	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) prptr->vhmdata->minheap)
-			  || ((uint32) blkaddr > (uint32) prptr->vhmdata->maxheap)) {
+	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) prptr->vmemlist.minheap)
+			  || ((uint32) blkaddr > (uint32) prptr->vmemlist.maxheap)) {
 		restore(mask);
 		return SYSERR;
 	}
 	nbytes = (uint32) roundmb(nbytes);	/* Use memblk multiples	*/
 	block = (struct memblk *)blkaddr;
-	memorylist = &prptr->vhmdata->mlist;
+	memorylist = &(prptr->vmemlist.mlist);
 	prev = memorylist;			/* Walk along free list	*/
 	next = memorylist->mnext;
 	while ((next != NULL) && (next < block)) {

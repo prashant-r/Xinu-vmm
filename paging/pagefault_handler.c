@@ -26,7 +26,7 @@ void pagefault_handler(void)
 
 	if(SYSERR == bs_map_check(currpid, fault_address >>12, &bs_store_id, &bs_store_page_offset))
 	{
-		LOG(" Accessed an illegal memory address in process %d 0x%08x ", currpid, fault_address);
+		LOG(" Accessed an illegal memory address in process %d  0x%08x ", currpid, fault_address);
 		kill(currpid);
 		restore(mask);
 		return;
