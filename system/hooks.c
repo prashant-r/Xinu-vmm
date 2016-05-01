@@ -13,7 +13,7 @@ void hook_ptable_delete(unsigned int pagenum)
 
 void hook_pfault(char *addr)
 {
-	kprintf("\n=== Page fault for address %d\n", addr);
+	kprintf("\n=== Page fault for address 0x%08x\n", addr);
 }
 
 

@@ -1,6 +1,6 @@
 /* paging.h */
 //typedef unsigned int	 bsd_t;
-#define LOGGING_ON
+//#define LOGGING_ON
 #define STARTING_PAGE 4096
 #define NUM_GLOBAL_PAGE_TABLES 4
 #define NUM_GLOBAL_AND_DEVICE_TABLES NUM_GLOBAL_PAGE_TABLES + 1
@@ -67,7 +67,7 @@ typedef struct {
 
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
-#define NFRAMES		50	/* number of frames		*/
+#define NFRAMES		25	/* number of frames		*/
 
 #define DEVICE_LOC (576)
 #define MAP_SHARED 1
@@ -171,6 +171,6 @@ typedef struct __virtu_addr{
 extern void * addressTranslate ( uint32 address);
 
 // in bs_map.c
-extern int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages);
-extern int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store );
+extern int do_bs_map(int pid, uint32 vp_no, bsd_t bs_id, int npages);
+extern int bs_map_check(int pid, uint32 vpage, int * store, int * page_offset_in_store );
 extern void backing_store_remove_mappings_for_pid(pid32 pid);

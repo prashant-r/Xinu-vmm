@@ -194,11 +194,14 @@ int free_frame(frame_t * frame)
 		return OK;
 	}
 	else if(frame->type == PAGE){
+
 		//print_fifo_list();
 		//LOG("Got here 0.5");
 		//3. Using the inverted page table, get vp, the virtual page number of the page to be replaced.
 		uint32 vp = frame->vp_no;
 		//4. Let a be vp*4096 (the first virtual address on page vp).
+
+		hook_pswap_out(vp, frame->id + FRAME0);
 		uint32 a = vp*PAGE_SIZE;
 
 		virtual_addr * virt = (virtual_addr *) &a;
@@ -267,7 +270,7 @@ int free_frame(frame_t * frame)
 			}
 			else if(pt_frame->type == GPTBL)
 			{
-				kprintf(" Uh  OH");
+			//	kprintf(" Uh  OH");
 			}
 			// If the reference count has reached zero, you should mark the appropriate entry in pd as "not present."
 			// This conserves frames by keeping only page tables which are necessary.
@@ -285,7 +288,7 @@ int free_frame(frame_t * frame)
 				int bs_store_page_offset;
 				if(SYSERR == bs_map_check(pid, vp, &bs_store_id, &bs_store_page_offset))
 				{
-						kprintf(" Can't find the bs_map");
+						kprintf("FATAL :Can't find the bs_map");
 						restore(mask);
 						kill(currpid);
 						return SYSERR;
@@ -332,6 +335,7 @@ int free_frame(frame_t * frame)
 	else if(frame->type == VPTBL)
 	{
 		evict_from_fifo_list(frame);
+		hook_ptable_delete(frame->id + FRAME0);
 		enable_paging();
 		initialize_frame(frame);
 	}
@@ -525,20 +529,23 @@ bool8 frame_was_accessed(frame_t * frame)
 				pt_t * pt = (pt_t *) ((uint32)(pd[page_dir_entry].pd_base) << 12);
 				for( page_table_entry = 0; page_table_entry < PAGETABLE_ENTRIES_SIZE; page_table_entry ++ )
 				{
-
-				 if (pt[page_table_entry].pt_pres && pt[page_table_entry].pt_acc && ((uint32)(&pt[page_table_entry])>>12) == (FRAME0 + frame->id)) {
+				//kprintf(" was accessed %d", pt[page_table_entry].pt_acc);
+				 if (pt[page_table_entry].pt_pres && pt[page_table_entry].pt_acc) {
 					 //kprintf(" This %d that %d", ((uint32)(&pt[page_table_entry])>>12), (FRAME0 + frame->id));
+					 if(pt[page_table_entry].pt_base == (frame->id + FRAME0)){
 					 accessed = TRUE;
 					 pt[page_table_entry].pt_acc = 0;
 				}
-			}
+
 
 			}
 		}
 	}
+
+		}
+	}
 	return accessed;
 }
-
 void inverted_pagetable_remove_mappings_for_pid(pid32 pid)
 {
 	intmask mask = disable();

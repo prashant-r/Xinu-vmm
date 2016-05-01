@@ -18,7 +18,7 @@ int initialize_global_pagetables(void)
         }
         new_pagetable = (pt_t *) FRAMEID_TO_PHYSICALADDR(frame->id);
         for (pagetable_entry = 0; pagetable_entry < PAGETABLE_ENTRIES_SIZE; ++pagetable_entry) {
-            bzero((char *)new_pagetable, sizeof(pt_t));
+            bzero((pt_t *)new_pagetable, sizeof(pt_t));
         	new_pagetable->pt_pres = 1;
         	new_pagetable->pt_write = 1;
         	new_pagetable->pt_base = ((global_page_table_index * PAGETABLE_ENTRIES_SIZE) +pagetable_entry);
@@ -63,6 +63,7 @@ pt_t * retrieve_new_page_table(void)
     frame_t * frame;
     intmask mask = disable();
     frame = retrieve_new_frame(VPTBL);
+    hook_ptable_create(frame->id + FRAME0);
     if(frame == NULL)
     {
         LOG("Error: Failed to create new page tables no free frames available");

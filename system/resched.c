@@ -42,16 +42,9 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
-	
-	//kprintf(" old 0x%08x new 0x%08x", ptold->pagedir, ptnew->pagedir);
 
-
-	switch_page_directory(ptnew->pagedir);
-
-
-	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
-
-
+	switch_page_directory((unsigned long)ptnew->pagedir);
+	ctxsw(&ptold->prstkptr,&ptnew->prstkptr);
 	return;
 }
 

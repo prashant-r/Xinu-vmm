@@ -12,9 +12,12 @@ void pagefault_handler(void)
 	mask = disable();
 	int bs_store_id;
 	int bs_store_page_offset;
-	unsigned int fault_address = (unsigned int )read_cr2();
+	unsigned long fault_address = (unsigned long )read_cr2();
 	pagefaults ++;
-	//LOG("handler with add 0x%08x pd 0x%08x", fault_address, read_cr3());
+
+	hook_pfault(fault_address);
+	//kprintf(" %d", pagefaults);
+	LOG("handler with add 0x%08x pd 0x%08x", fault_address, read_cr3());
 	virtual_addr * vir_add  = NULL;
 
 	vir_add = (virtual_addr *)&fault_address;
@@ -26,7 +29,7 @@ void pagefault_handler(void)
 
 	if(SYSERR == bs_map_check(currpid, fault_address >>12, &bs_store_id, &bs_store_page_offset))
 	{
-		LOG(" Accessed an illegal memory address in process %d  0x%08x ", currpid, fault_address);
+		kprintf("FATAL: Accessed an illegal memory address in process %d  0x%08x vp %d pgd_off %d", currpid, fault_address, fault_address>>12, pgd_off);
 		kill(currpid);
 		restore(mask);
 		return;
@@ -104,20 +107,18 @@ void pagefault_handler(void)
 		{
 			kprintf(" Replacement policy not working correctly! No available frames for pframe.");
 			restore(mask);
-			//kill(currpid);
+			kill(currpid);
 			return;
 		}
 
 		//LOG(" TRYING BACKEND NOW");
 		//LOG(" Trying backend store for frame id %d, bs store id %d, bs page offset %d", pageframe_id, bs_store_id, bs_store_page_offset);
-		open_bs(bs_store_id);
 		if (SYSERR == read_bs((char *) FRAMEID_TO_PHYSICALADDR(pageframe_id), bs_store_id, bs_store_page_offset)) {
 			kprintf(" Reading backend store for frame id %d, bs store id %d, bs page offset %d failed", pageframe_id, bs_store_id, bs_store_page_offset);
 			restore(mask);
 			return;
 		}
 		//kprintf("After  %d ", ptab[pgt_off].pt_dirty);
-		close_bs(bs_store_id);
 	}
 	else if( frame_map_check_result == OK)
 	{

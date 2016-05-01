@@ -25,13 +25,17 @@ syscall	kill(
 		xdone();
 	}
 
-	//paging_related_destruction();
+	paging_related_destruction();
 
-	//send(prptr->prparent, pid);
+	if(prptr->vmemlist != NULL)
+		freemem(prptr->vmemlist, sizeof(vhmdata));
+
+	send(prptr->prparent, pid);
 	for (i=0; i<3; i++) {
 		close(prptr->prdesc[i]);
 	}
-	//freestk(prptr->prstkbase, prptr->prstklen);
+
+	freestk(prptr->prstkbase, prptr->prstklen);
 
 	switch (prptr->prstate) {
 	case PR_CURR:
@@ -63,6 +67,7 @@ syscall	kill(
 
 void paging_related_destruction()
 {
+
 	// Remove any mappings that this process may have with the backing store
 	backing_store_remove_mappings_for_pid(currpid);
 

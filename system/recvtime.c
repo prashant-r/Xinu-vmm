@@ -18,7 +18,6 @@ umsg32	recvtime(
 		return SYSERR;
 	}
 	mask = disable();
-
 	/* Schedule wakeup and place process in timed-receive state */
 
 	prptr = &proctab[currpid];

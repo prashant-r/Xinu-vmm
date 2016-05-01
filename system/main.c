@@ -12,15 +12,22 @@ process    main(void)
     /* DO NOT REMOVE OR COMMENT THIS CALL */
     psinit();
 
-    kprintf(" Using FIFO queue starting now! ");
+    recvclr();
+
+    int bs_id;
+    for( bs_id =0; bs_id < MAX_BS_ENTRIES; bs_id ++)
+    	open_bs(bs_id);
     srpolicy(FIFO);
+
+    sleepms(2500);
+    recvclr();
 
     all_paging_tests();
 
-    sleepms(20000);
     while(TRUE)
     {
-
+    	recvclr();
+    	sleepms(3000);
     }
     return OK;
 }

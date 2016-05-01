@@ -16,8 +16,8 @@ syscall	freemem(
 	uint32	top;
 
 	mask = disable();
-	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) minheap)
-			  || ((uint32) blkaddr > (uint32) maxheap)) {
+	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) minimheap)
+			  || ((uint32) blkaddr > (uint32) maximheap)) {
 		restore(mask);
 		return SYSERR;
 	}

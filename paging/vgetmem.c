@@ -12,8 +12,34 @@ WORD *vgetmem (int nbytes)
 		return (char *)SYSERR;
 	}
 
+	if (prptr->vmemlist == NULL)
+	{
+			prptr->vmemlist = getmem(sizeof(vhmdata));
+			vhmdata * vhmdatavar = prptr->vmemlist ;
+			struct	memblk	*memptr;	/* Ptr to memory block		*/
+			/* Initialize the free list */
+			memptr = &(vhmdatavar->mlist);
+			//kprintf(" Memptr is 0x%08x", memptr);
+			memptr->mnext = (struct memblk *)NULL;
+			memptr->mlength = 0;
+			/* Initialize the memory counters */
+			/*    Heap starts at the end of Xinu image */
+			vhmdatavar->maxh = (uint32)((prptr->vpagestart + prptr->vpagesize)*4096);
+			vhmdatavar->minh = (uint32)(prptr->vpagestart*4096);
+			//LOG(" Max heap is 0x%08x \n", vhmdatavar->maxheap);
+			//LOG(" Min heap is 0x%08x \n", vhmdatavar->minheap);
+			memptr->mlength = (uint32)vhmdatavar->maxh - (uint32)vhmdatavar->minh;
+			//LOG(" Size of mlength is %d \n", memptr->mlength);
+			memptr->mnext = (struct memblk *)vhmdatavar->minh;
+			memptr = memptr->mnext;
+			memptr->mnext = NULL;
+			memptr->mlength = (uint32)vhmdatavar->maxh - (uint32)vhmdatavar->minh;
+			//LOG(" Size of mlength is %d \n", memptr->mlength);
+
+	}
 	nbytes = (uint32) roundmb(nbytes);	/* Use memblk multiples	*/
-	memorylist = &(prptr->vmemlist.mlist);
+	memorylist = &(prptr->vmemlist->mlist);
+
 	prev = memorylist;
 	curr = memorylist->mnext;
 	while (curr != NULL) {			/* Search free list	*/
@@ -46,6 +72,28 @@ WORD *vgetmem (int nbytes)
 void printMemory()
 {
 
+	struct procent * prptr;
+		struct	memblk	*memptr;	/* Ptr to memory block		*/
+		prptr = &proctab[currpid];
+
+		struct memblk * memorylist;
+		if(prptr->vmemlist != NULL){
+		memorylist = &(prptr->vmemlist->mlist);
+		uint32 free_mem = 0;
+		for (memptr = memorylist->mnext; memptr != NULL;
+							memptr = memptr->mnext) {
+			free_mem += memptr->mlength;
+		}
+		//kprintf("%10d bytes of free memory.  Free list:\n", free_mem);
+		for (memptr=memorylist->mnext; memptr!=NULL;memptr = memptr->mnext) {
+		    kprintf("           [0x%08X to 0x%08X]\r\n",
+			(uint32)memptr, ((uint32)memptr) + memptr->mlength - 1);
+			}
+		}
+		else
+		{
+			kprintf(" No vheap data ");
+		}
 }
 
 void * addressTranslate ( uint32 address)

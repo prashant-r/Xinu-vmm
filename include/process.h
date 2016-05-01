@@ -60,7 +60,7 @@ struct procent {		/* Entry in the process table		*/
 	pd_t * pagedir ;// page directory associated
 	uint32 vpagestart;
 	uint32 vpagesize;
-	vhmdata vmemlist;  /* vheap list                   */
+	vhmdata * vmemlist;  /* vheap list                   */
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

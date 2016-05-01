@@ -9,7 +9,7 @@
 syscall	yield(void)
 {
 	intmask	mask;			/* Saved interrupt mask		*/
-
+	struct procent * prptr = &proctab[currpid];
 	mask = disable();
 	resched();
 	restore(mask);

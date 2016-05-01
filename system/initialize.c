@@ -144,7 +144,9 @@ static	void	sysinit()
 	Defer.ndefers = 0;
 
 	pagefaults = 0;
-
+	initialize_all_frames(); // Initialize all necessary data structures.
+	pd_t * null_pg_dir = retrieve_new_page_directory();
+	//kprintf(" The page dir is 0x%08x", null_pg_dir);
 	for (i = 0; i < NPROC; i++) {
 
 		prptr = &proctab[i];
@@ -154,13 +156,13 @@ static	void	sysinit()
 		prptr->prprio = 0;
 		prptr->vpagesize = 0;
 		prptr->vpagestart =0;
-		prptr->pagedir = NULL;
+		prptr->pagedir = null_pg_dir;
+		prptr->vmemlist = NULL;
 	}
 
 
 	/* Initialize process table entries free */
 		prptr = &proctab[NULLPROC];
-		prptr->pagedir = NULL;
 		prptr->prstate = PR_CURR;
 		prptr->prprio = 0;
 		strncpy(prptr->prname, "prnull", 7);
@@ -169,6 +171,9 @@ static	void	sysinit()
 		prptr->prstkptr = 0;
 		prptr->vpagesize = 0;
 		prptr->vpagestart =0;
+		prptr->vmemlist = NULL;
+		prptr->pagedir = null_pg_dir;
+		//kprintf(" The page dir is 0x%08x", prptr->pagedir);
 
 
 
@@ -210,14 +215,8 @@ static	void	sysinit()
 
 void initialize_paging(void)
 {
-
-	initialize_all_frames(); // Initialize all necessary data structures.
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
-	prptr = &proctab[NULLPROC]; // Get the null process table entry
-
-	pd_t * null_pg_dir = retrieve_new_page_directory();
-	prptr->pagedir = null_pg_dir;
-
+	prptr= &proctab[NULLPROC];
     initialize_global_pagetables();//Create the page tables which map pages 0 through 4095 to the 16 MB physical address range.
                                    //We will call these global page tables.
 	
@@ -226,7 +225,8 @@ void initialize_paging(void)
                                    //This means you will need to fill page directory entry at index #576 (0x90000000 >> 22) and
                                    //all the entries in the corresponding page table
 	
-	switch_page_directory( null_pg_dir); // Set the PDBR register to the page directory of the null process.
+	//kprintf(" The page dir is 0x%08x", prptr->pagedir);
+	switch_page_directory((unsigned long)prptr->pagedir); // Set the PDBR register to the page directory of the null process.
 	
 	set_evec(14,(uint32)pagefault_interrupt); // Install the page fault interrupt service routine.
 

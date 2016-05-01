@@ -4,6 +4,7 @@ extern	status	addargs(pid32, int32, int32[], int32,char *, void *);
 /* in file allocate_bs.c */
 extern	bsd_t	allocate_bs(unsigned int);
 
+extern pid32	newpid(void);
 
 /* in file arp.c */
 
@@ -67,7 +68,7 @@ extern	pid32	create(void *, uint32, pri16, char *, uint32, ...);
 
 /* in file ctxsw.S */
 
-extern	void	ctxsw(void *, void *);
+extern	void	ctxsw(void *,void *);
 
 /* in file deallocate_bs.c */
 extern	bsd_t	deallocate_bs(bsd_t);

@@ -23,13 +23,13 @@ struct	memblk	{			/* See roundmb & truncmb	*/
 	uint32	mlength;		/* Size of blk (includes memblk)*/
 	};
 extern	struct	memblk	memlist;	/* Head of free memory list	*/
-extern	void	*minheap;		/* Start of heap		*/
-extern	void	*maxheap;		/* Highest valid heap address	*/
+extern	void	*minimheap;		/* Start of heap		*/
+extern	void	*maximheap;		/* Highest valid heap address	*/
 
 /* Added for demand paging - virtual memory*/
 typedef struct _vhmdata_ {
-	uint32	minheap;		/* Start of heap		*/
-	uint32	maxheap;		/* Highest valid heap address	*/
+	uint32	minh;		/* Start of heap		*/
+	uint32	maxh;		/* Highest valid heap address	*/
 	struct	memblk mlist;
 } vhmdata;
 

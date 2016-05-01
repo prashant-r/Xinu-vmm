@@ -1,12 +1,29 @@
 #include <xinu.h>
-
 void all_paging_tests()
 {
-	kprintf(" Running aging tests");
-	//agingTest();
-	//sleepms(20000);
-	kprintf(" Running max page test");
+	kprintf("\n Running MYPOLICY tests");
+
+	kprintf("\n FIFO queue policy: ");
+	pagefaults = 0;
+	srpolicy(FIFO);
+	agingTest();
+	sleepms(10000);
+
+	kprintf("\n Resetting number of faults");
+
+	pagefaults = 0;
+	kprintf("\n AGING queue policy: ");
+	srpolicy(AGING);
+	agingTest();
+	sleepms(6000);
+
+	kprintf("\n Running max page test");
 	maxPageTest();
+	while(TRUE)
+	{
+		recvclr();
+		sleepms(1500);
+	}
 
 }
 
@@ -21,33 +38,31 @@ void agingTest()
 
 void maxPageTest()
 {
-
 	int pa, pb, pc, pd, pe, pf;
     pa = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
-    pd = vcreate(vcprocA, 1024, 200, 20, "procD", 0, 0);
-    pf = vcreate(vcprocA, 1024, 200, 20, "procF", 0, 0);
+    pb = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
+    pc = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
+    pd = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
+    pe = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
+    pf = vcreate(vcprocA, 1024, 200, 20, "procA", 0, 0);
 
-    LOG(" Number of free frames is %d ", get_free_frame_count());
 
     resume(pa);
-    resume(pd);
-    resume(pf);
-    return;
+    resume(pb);
+    resume(pc);
 }
 
 void vcprocA()
 {
 
 	//print_directory(currpid);
-
-
-	LOG(" In vcproc%d", currpid);
-
 	char c = 'B';
 	//addressTranslate(tmp);
 	//printMemory();
 	//kprintf("Character at address %d is %c \n",tmp, *tmp);
+	struct procent * prptr = &proctab[currpid];
 	int count = (200 * PAGE_SIZE)-8;
+	//LOG(" Size before before is %d" ,  prptr->vmemlist.mlist.mlength)  ;
 	char * tmp = vgetmem(count);
 	//kprintf(" Address provided is 0x%08x", tmp);
 	//printMemory();
@@ -57,46 +72,35 @@ void vcprocA()
 	{
 		tmp[a] = c;
 	}
+//	LOG(" made it here");
 	//LOG("Number of free frames are  %d ", get_free_frame_count());
 	int testcount = 0;
 	for (a = 0; a< count; a++)
 		if(tmp[a] == c)
 			testcount ++ ;
-
+//	LOG(" trying");
 	if(testcount == count)
 		kprintf("\n proc%c has correct values in memset \n", c);
 	else
 		kprintf("\n proc%c has incorrect values in memset %d!= %d \n",c, testcount, count);
+	while(TRUE)
+	{
 
-	vfreemem(tmp, count);
-
-	testcount = 0;
-	vfreemem(tmp, count);
-	for (a = 0; a< count; a++)
-			if(tmp[a] == c)
-				testcount ++ ;
-	if(testcount == 0)
-			kprintf("\n proc%c has correct values in memfree \n",c);
-		else
-			kprintf("\n proc%c has incorrect values in memfree %d!= %d \n",c, testcount, count);
+	}
 }
 
 
 void rpprocA()
 {
 	char c = 'G';
-	int count = (150 * PAGE_SIZE)-8;
+	unsigned long count = (200 * NBPG)-8;
 	char *tmp = vgetmem(count);
 	int a;
-	for(a =0; a < count; a++)
-		{
-			tmp[a] = c;
-		}
-
-	srand(count);
+	srand(20000*currpid);
 	int g;
-	for( g = 0; g < 9000; g++){
-		tmp[rand()] = ' Y';
+	for( g = 0; g < 200000; g++){
+		a = rand()%count;
+		tmp[a] = ' Y';
 	}
-	kprintf(" Number of faults is :" +  get_faults());
+	kprintf(" Number of faults is : %d" ,  get_faults());
 }

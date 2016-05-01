@@ -1,6 +1,6 @@
 #include <xinu.h>
 
-int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages)
+int do_bs_map(int pid, uint32 vp_no, bsd_t bs_id, int npages)
 {
 	intmask mask ;
 	mask = disable();
@@ -36,7 +36,7 @@ int do_bs_map(int pid, int vp_no, bsd_t bs_id, int npages)
 	return OK;
 }
 
-int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store )
+int bs_map_check(int pid, uint32 vpage, int * store, int * page_offset_in_store )
 {
 	intmask mask;
 	mask = disable();
@@ -62,7 +62,6 @@ int bs_map_check(int pid, int vpage, int * store, int * page_offset_in_store )
 	for (bs_id = 0; bs_id < BS_MAX_STORES; ++bs_id) {
 
 	  if (bstab[bs_id].isallocated == TRUE) {
-		  //LOG(" bstab allocated %d this pid %d pid %d vpage %d vp_no %d", bs_id,pid,  bstab[bs_id].pid,vpage,  bstab[bs_id].vp_no );
 		  if(bstab[bs_id].pid == pid && vpage >= bstab[bs_id].vp_no  && vpage <= bstab[bs_id].vp_no + bstab[bs_id].npages)
 		  {
 			  *store = bs_id;

@@ -77,7 +77,7 @@ int tbl_id;
 	 {
 		if(prptr->pagedir[tbl_id].pd_pres)
 		{
-			LOG(" \n For %d base is 0x%08x", tbl_id, prptr->pagedir[tbl_id].pd_base);
+			//kprintf(" \n For %d base is 0x%08x", tbl_id, prptr->pagedir[tbl_id].pd_base);
 		}
 	 }
 	restore(mask);

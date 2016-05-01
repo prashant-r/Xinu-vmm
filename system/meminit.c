@@ -4,8 +4,8 @@
 
 /* Memory bounds */
 
-void	*minheap;		/* Start of heap			*/
-void	*maxheap;		/* Highest valid heap address		*/
+void	*minimheap;		/* Start of heap			*/
+void	*maximheap;		/* Highest valid heap address		*/
 
 /* Memory map structures */
 
@@ -70,17 +70,17 @@ void	meminit(void) {
 	
 	/* Initialize the memory counters */
 	/*    Heap starts at the end of Xinu image */
-	minheap = (void*)&end;
-	maxheap = minheap;
+	minimheap = (void*)&end;
+	maximheap = minimheap;
 
-	maxheap = (void *)(4*1024*1024);
+	maximheap = (void *)(4*1024*1024);
 
-	memptr->mlength = (uint32)maxheap - (uint32)minheap;
-	memptr->mnext = (struct memblk *)minheap;
+	memptr->mlength = (uint32)maximheap - (uint32)minimheap;
+	memptr->mnext = (struct memblk *)minimheap;
 
 	memptr = memptr->mnext;
 	memptr->mnext = NULL;
-	memptr->mlength = (uint32)maxheap - (uint32)minheap;
+	memptr->mlength = (uint32)maximheap - (uint32)minimheap;
 
 }
 

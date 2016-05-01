@@ -2,8 +2,6 @@
 
 #include <xinu.h>
 
-local	int newpid();
-
 #define	roundew(x)	( (x+3)& ~0x3)
 
 /*------------------------------------------------------------------------
@@ -57,6 +55,9 @@ pid32	create(
 	prptr->prdesc[0] = CONSOLE;
 	prptr->prdesc[1] = CONSOLE;
 	prptr->prdesc[2] = CONSOLE;
+
+	struct procent * prptrNULL = &(proctab[NULLPROC]);
+	prptr->pagedir= prptrNULL->pagedir;
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;
@@ -95,9 +96,6 @@ pid32	create(
 	*--saddr = 0;			/* %esi */
 	*--saddr = 0;			/* %edi */
 	*pushsp = (unsigned long) (prptr->prstkptr = (char *)saddr);
-
-
-	prptr->pagedir = retrieve_new_page_directory();
 	// For demand paging
 	restore(mask);
 	return pid;
@@ -107,7 +105,7 @@ pid32	create(
  *  newpid  -  Obtain a new (free) process ID
  *------------------------------------------------------------------------
  */
-local	pid32	newpid(void)
+pid32	newpid(void)
 {
 	uint32	i;			/* Iterate through all processes*/
 	static	pid32 nextpid = 1;	/* Position in table to try or	*/
